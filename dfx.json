@@ -1,0 +1,34 @@
+{
+  "canisters": {
+    "internet_identity": {
+      "type": "custom",
+      "candid": "https://github.com/dfinity/internet-identity/releases/download/release-2023-11-17/internet_identity.did",
+      "wasm": "https://github.com/dfinity/internet-identity/releases/download/release-2023-11-17/internet_identity_dev.wasm.gz",
+      "remote": {
+        "id": {
+          "ic": "rdmx6-jaaaa-aaaaa-aaadq-cai"
+        }
+      }
+    },
+    "myhealth_backend": {
+      "type": "custom",
+      "main": "src/contract/index.ts",
+      "candid": "src/contract/index.did",
+      "build": "npx azle myhealth_backend",
+      "wasm": ".azle/myhealth_backend/myhealth_backend.wasm",
+      "gzip": true,
+      "declarations": {
+        "node_compatibility": true
+      }
+    },
+    "myhealth_frontend": {
+      "type": "assets",
+      "source": ["out"],
+      "frontend": {
+        "entrypoint": "out/index.html"
+      }
+    }
+  },
+  "dfx": "0.15.2",
+  "version": 1
+}
