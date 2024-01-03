@@ -3,85 +3,145 @@
 import { useEffect, useState } from 'react';
 import { AuthClient } from '@dfinity/auth-client';
 
-import { AuthContext } from './AuthContext';
 import { createActor } from '@/declarations/myhealth_backend';
+import { AuthContext } from '@/lib/contexts/auth';
 
-import type { ActorSubclass, Identity } from '@dfinity/agent';
-import type { Principal } from '@dfinity/principal';
+import type { Result } from 'azle';
+import type { ActorSubclass } from '@dfinity/agent';
+import type { Error, User, UserPayload } from '@/contract';
 import type { _SERVICE } from '@/declarations/myhealth_backend/myhealth_backend.did';
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authClient, setAuthClient] = useState<AuthClient | null>(null);
   const [actor, setActor] = useState<ActorSubclass<_SERVICE> | null>(null);
-  const [identity, setIdentity] = useState<Identity | null>(null);
-  const [principal, setPrincipal] = useState<Principal | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
+  const [isInitializing, setIsInitializing] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const initializeClient = async (client: AuthClient) => {
-    const isAuthenticated = await client.isAuthenticated();
-    setIsAuthenticated(isAuthenticated);
+  const initClient = async (client: AuthClient) => {
+    try {
+      setIsInitializing(true);
+      setAuthClient(client);
 
-    const identity = client.getIdentity();
-    setIdentity(identity);
+      const actor = createActor(process.env.NEXT_PUBLIC_CANISTER_ID_MYHEALTH_BACKEND || '', {
+        agentOptions: {
+          host: process.env.NEXT_PUBLIC_IC_HOST,
+          identity: client.getIdentity(),
+        },
+      });
+      setActor(actor);
 
-    const principal = identity.getPrincipal();
-    setPrincipal(principal);
+      const isCallerAuthenticated = await client.isAuthenticated();
+      setIsAuthenticated(isCallerAuthenticated);
 
-    const actor = createActor(process.env.NEXT_PUBLIC_CANISTER_ID_MYHEALTH_BACKEND || '', {
-      agentOptions: {
-        host: process.env.NEXT_PUBLIC_IC_HOST,
-        identity,
-      },
-    });
+      if (!isCallerAuthenticated) {
+        setUser(null);
+        setIsRegistered(false);
+        return;
+      }
 
-    setActor(actor);
-    setAuthClient(client);
+      const isCallerRegistered = await actor.isCallerRegistered();
+      setIsRegistered(isCallerRegistered);
+
+      if (!isCallerRegistered) return setUser(null);
+
+      const user: Result<any, Error> = await actor.getMyProfile();
+
+      if (user.Err) throw new Error(Object.values(user.Err)[0]);
+      setUser(user.Ok);
+    } catch (err) {
+      await client.logout();
+      setAuthClient(client);
+
+      const actor = createActor(process.env.NEXT_PUBLIC_CANISTER_ID_MYHEALTH_BACKEND || '', {
+        agentOptions: {
+          host: process.env.NEXT_PUBLIC_IC_HOST,
+          identity: client.getIdentity(),
+        },
+      });
+      setActor(actor);
+      setIsAuthenticated(false);
+      setIsRegistered(false);
+      setUser(null);
+
+      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+    } finally {
+      setIsInitializing(false);
+    }
+  };
+
+  const signUp = async (payload: UserPayload) => {
+    try {
+      setIsLoading(true);
+
+      if (!actor) throw new Error('Actor belum diinisialisasi!');
+
+      const user: Result<any, Error> = await actor.createUser(payload);
+
+      if (user.Err) throw new Error(Object.values(user.Err)[0]);
+      setUser(user.Ok);
+      setIsRegistered(true);
+    } catch (err) {
+      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signIn = async () => {
-    if (!authClient) return;
+    try {
+      setIsLoading(true);
 
-    setIsLoading(true);
+      if (!authClient) throw new Error('AuthClient belum diinisialisasi!');
 
-    await authClient.login({
-      identityProvider:
-        process.env.NEXT_PUBLIC_DFX_NETWORK === 'ic'
-          ? 'https://identity.ic0.app/#authorize'
-          : `${process.env.NEXT_PUBLIC_IC_HOST}?canisterId=${process.env.NEXT_PUBLIC_CANISTER_ID_INTERNET_IDENTITY}#authorize`,
-      maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
-      onSuccess: async () => await initializeClient(authClient),
-    });
-
-    setIsLoading(false);
+      await authClient.login({
+        identityProvider:
+          process.env.NEXT_PUBLIC_DFX_NETWORK === 'ic'
+            ? 'https://identity.ic0.app/#authorize'
+            : `${process.env.NEXT_PUBLIC_IC_HOST}?canisterId=${process.env.NEXT_PUBLIC_CANISTER_ID_INTERNET_IDENTITY}#authorize`,
+        maxTimeToLive: BigInt(12) * BigInt(3_600_000_000_000),
+        onSuccess: async () => await initClient(authClient),
+      });
+    } catch (err) {
+      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const signOut = async () => {
-    if (!authClient) return;
+    try {
+      setIsLoading(true);
 
-    setIsLoading(true);
+      if (!authClient) throw new Error('AuthClient belum diinisialisasi!');
 
-    await authClient.logout();
-    await initializeClient(authClient);
-
-    setIsLoading(false);
+      await authClient.logout();
+      await initClient(authClient);
+    } catch (err) {
+      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    AuthClient.create()
-      .then(async (client) => await initializeClient(client))
-      .finally(() => setIsLoading(false));
+    AuthClient.create({ idleOptions: { disableIdle: true } }).then(
+      async (client) => await initClient(client)
+    );
   }, []);
 
   return (
     <AuthContext.Provider
       value={{
-        authClient,
         actor,
-        identity,
-        principal,
+        user,
         isAuthenticated,
+        isRegistered,
+        isInitializing,
         isLoading,
+        signUp,
         signIn,
         signOut,
       }}
