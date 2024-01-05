@@ -25,7 +25,7 @@ const MainLayout = ({ children, isLoggingOut }: MainLayoutProps) => {
   if (isInitializing || !isAuthenticated || !isRegistered) return null;
 
   return (
-    <Container as="main" maxWidth="container.lg" padding={4} centerContent>
+    <Container as="main" maxWidth="container.xl" padding={4} centerContent>
       {children}
     </Container>
   );

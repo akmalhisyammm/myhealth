@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Box, Container } from '@chakra-ui/react';
 
 import { AuthContext } from '@/lib/contexts/auth';
-import { Navbar } from '@/lib/components/organisms';
+import { Footer, Navbar } from '@/lib/components/organisms';
 
 type HomeLayout = {
   children: React.ReactNode;
@@ -27,11 +27,12 @@ const HomeLayout = ({ children, isLoggingIn }: HomeLayout) => {
   if ((isInitializing || isAuthenticated) && !isLoggingIn) return null;
 
   return (
-    <Box minHeight="100vh" backgroundColor="gray.100">
+    <Box minHeight="100vh" backgroundColor="white">
       <Navbar />
-      <Container as="main" maxWidth="container.lg" position="relative" top={85} padding={4}>
+      <Container as="main" maxWidth="full" position="relative" top={85} padding={0}>
         {children}
       </Container>
+      <Footer />
     </Box>
   );
 };
