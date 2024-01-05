@@ -20,6 +20,11 @@ export const registerSchema = yup.object().shape({
       ROLE_OPTIONS.map((option) => option.value),
       'Peran tidak valid'
     ),
+  hospitalId: yup.string().when('role', {
+    is: (role: string) => role === 'admin' || role === 'doctor' || role === 'nurse',
+    then: (schema) => schema.required('Rumah sakit wajib diisi'),
+    otherwise: (schema) => schema,
+  }),
   nik: yup.string().when('role', {
     is: (role: string) => role === 'patient',
     then: (schema) =>
@@ -31,7 +36,7 @@ export const registerSchema = yup.object().shape({
     otherwise: (schema) => schema,
   }),
   nip: yup.string().when('role', {
-    is: (role: string) => role === 'doctor' || role === 'nurse',
+    is: (role: string) => role === 'admin' || role === 'doctor' || role === 'nurse',
     then: (schema) =>
       schema
         .required('NIP wajib diisi')
@@ -53,6 +58,30 @@ export const registerSchema = yup.object().shape({
     then: (schema) => schema.required('Spesialisasi wajib diisi'),
     otherwise: (schema) => schema,
   }),
+  // schedules: yup.array().when('role', {
+  //   is: (role: string) => role === 'doctor',
+  //   then: (schema) =>
+  //     schema.required('Jadwal praktek wajib diisi').of(
+  //       yup.object().shape({
+  //         day: yup
+  //           .string()
+  //           .required('Hari wajib diisi')
+  //           .oneOf(
+  //             ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+  //             'Hari tidak valid'
+  //           ),
+  //         startTime: yup
+  //           .string()
+  //           .required('Jam mulai wajib diisi')
+  //           .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Jam mulai tidak valid'),
+  //         endTime: yup
+  //           .string()
+  //           .required('Jam selesai wajib diisi')
+  //           .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Jam selesai tidak valid'),
+  //       })
+  //     ),
+  //   otherwise: (schema) => schema,
+  // }),
   email: yup
     .string()
     .required('Email wajib diisi')

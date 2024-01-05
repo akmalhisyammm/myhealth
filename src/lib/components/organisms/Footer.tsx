@@ -1,180 +1,103 @@
-import pallete from '@/lib/style/pallete';
 import {
   Box,
-  Button,
-  Container,
-  FormControl,
+  Divider,
   HStack,
   Heading,
   IconButton,
-  Menu,
-  MenuButton,
-  MenuDivider,
-  MenuItem,
-  MenuList,
-  Textarea,
-  Text,
-  Image,
-  SimpleGrid,
   Link,
+  SimpleGrid,
+  Text,
   VStack,
 } from '@chakra-ui/react';
-import { Nunito } from 'next/font/google';
-import { BiMenu } from 'react-icons/bi';
 import { FaInstagram, FaTwitter, FaYoutube } from 'react-icons/fa';
-
-const nunito = Nunito({
-  subsets: ['latin'],
-  // weight: ['400', '500', '600', '700', '800', '900'],
-});
 
 const Footer = () => {
   return (
-    <HStack
-      width="full"
-      height="full"
-      alignItems="center"
-      bgColor={pallete.colors.blue[500]}
-      // flexDirection={['column', 'column', 'row']}
-      minH={520}
-      spacing={6}
-      paddingY={12}
-      justifyContent={'center'}
-      marginTop={85}
-      paddingX={6}
+    <Box
+      color="white"
+      backgroundColor="brand.500"
+      textAlign={['center', 'center', 'start']}
+      paddingX={[4, 4, 12]}
+      paddingY={8}
     >
-      <SimpleGrid row={3} spacing={6}>
-        <HStack
-          width="full"
-          height="full"
-          alignItems="center"
-          paddingX={12}
-          minH={520}
-          spacing={12}
-          flexWrap={'wrap'}
-        >
-          <Box padding={5}>
-            <Heading
-              paddingY={15}
-              as="h6"
-              size="md"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              Healthies
-            </Heading>
-            <Heading
-              paddingY={15}
-              as="h6"
-              size="sm"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              Kontak Kami
-            </Heading>
-            <Text
-              fontSize="md"
-              textAlign="justify"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              JL. HealthyCare KM 18.9 Kawasan Industri Daan Mogot Blok G no.25, Jakarta Selatan -
-              Indonesia
-            </Text>
-            <Text
-              paddingTop={30}
-              fontSize="md"
-              textAlign="justify"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              Phone : (62)21 5361061
-            </Text>
-            <Text
-              fontSize="md"
-              textAlign="justify"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              Fax : (62)21 5309156, 53660620
-            </Text>
-            <Text
-              fontSize="md"
-              textAlign="justify"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              E-Mail : healthy@gmail.com
-            </Text>
-          </Box>
-          <Box padding={5} marginTop={78}>
-            <Heading
-              marginBottom={5}
-              as="h6"
-              size="sm"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              Tautan
-            </Heading>
+      <Heading as="h4" size="lg">
+        MyHealth
+      </Heading>
+
+      <SimpleGrid columns={[1, 1, 3]} paddingY={8} spacing={8}>
+        <Box>
+          <Heading as="h5" size="md" marginBottom={4}>
+            Kontak Kami
+          </Heading>
+          <Text fontSize="md" marginBottom={4}>
+            JL. HealthyCare KM 18.9 Kawasan Industri Daan Mogot Blok G no.25, Jakarta Selatan -
+            Indonesia
+          </Text>
+          <Text fontSize="md">Phone: (62)21 5361061</Text>
+          <Text fontSize="md">Fax: (62)21 5309156, 53660620</Text>
+          <Text fontSize="md">E-Mail: healthy@gmail.com</Text>
+        </Box>
+
+        <Box marginX="auto">
+          <Heading as="h5" size="md" marginBottom={4}>
+            Link Terkait
+          </Heading>
+          <HStack spacing={12}>
             <VStack alignItems="start">
-              <Link fontFamily={nunito.style.fontFamily} color={'white'} href="#" isExternal>
+              <Link href="#" isExternal>
                 Beranda
               </Link>
-              <Link fontFamily={nunito.style.fontFamily} color={'white'} href="#" isExternal>
+              <Link href="#" isExternal>
                 Tentang
               </Link>
-              <Link fontFamily={nunito.style.fontFamily} color={'white'} href="#" isExternal>
+              <Link href="#" isExternal>
                 Dokter
               </Link>
-              <Link fontFamily={nunito.style.fontFamily} color={'white'} href="#" isExternal>
+              <Link href="#" isExternal>
                 Pelayanan
               </Link>
-              <Link fontFamily={nunito.style.fontFamily} color={'white'} href="#" isExternal>
+              <Link href="#" isExternal>
                 Kontak
               </Link>
             </VStack>
-          </Box>
-          <Box padding={5}>
-            <Heading
-              marginBottom={5}
-              as="h6"
-              size="sm"
-              fontFamily={nunito.style.fontFamily}
-              color={'white'}
-            >
-              Sosial Media
-            </Heading>
-            <HStack alignItems="start">
-              <IconButton
-                isRound={true}
-                variant="solid"
-                colorScheme="yellow"
-                aria-label="Done"
-                fontSize="20px"
-                icon={<FaInstagram />}
-              />
-              <IconButton
-                isRound={true}
-                variant="solid"
-                colorScheme="blue"
-                aria-label="Done"
-                fontSize="20px"
-                icon={<FaTwitter />}
-              />
-              <IconButton
-                isRound={true}
-                variant="solid"
-                colorScheme="red"
-                aria-label="Done"
-                fontSize="20px"
-                icon={<FaYoutube />}
-              />
-            </HStack>
-          </Box>
-        </HStack>
+            <VStack alignItems="start">
+              <Link href="#" isExternal>
+                Beranda
+              </Link>
+              <Link href="#" isExternal>
+                Tentang
+              </Link>
+              <Link href="#" isExternal>
+                Dokter
+              </Link>
+              <Link href="#" isExternal>
+                Pelayanan
+              </Link>
+              <Link href="#" isExternal>
+                Kontak
+              </Link>
+            </VStack>
+          </HStack>
+        </Box>
+
+        <Box marginX="auto">
+          <Heading as="h5" size="md" marginBottom={4}>
+            Sosial Media
+          </Heading>
+          <HStack spacing={4}>
+            <IconButton aria-label="Instagram" fontSize="20px" icon={<FaInstagram />} isRound />
+            <IconButton aria-label="Twitter" fontSize="20px" icon={<FaTwitter />} isRound />
+            <IconButton aria-label="YouTube" fontSize="20px" icon={<FaYoutube />} isRound />
+          </HStack>
+        </Box>
       </SimpleGrid>
-    </HStack>
+
+      <Divider />
+
+      <Text textAlign="center" marginTop={8}>
+        &copy; {new Date().getFullYear()} MyHealth. All rights reserved.
+      </Text>
+    </Box>
   );
 };
 
