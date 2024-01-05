@@ -2,32 +2,33 @@
 
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Container } from '@chakra-ui/react';
+import { Box, HStack } from '@chakra-ui/react';
 
 import { AuthContext } from '@/lib/contexts/auth';
+import { Navbar, Sidebar } from '@/lib/components/organisms';
 
-type MainLayoutProps = {
-  children: React.ReactNode;
-  isLoggingOut?: boolean;
-};
-
-const MainLayout = ({ children, isLoggingOut }: MainLayoutProps) => {
+const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isRegistered, isInitializing } = useContext(AuthContext);
 
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoggingOut) return;
     if (!isAuthenticated) return router.replace('/');
     if (!isRegistered) return router.replace('/auth/register');
-  }, [router, isAuthenticated, isRegistered, isLoggingOut]);
+  }, [router, isAuthenticated, isRegistered]);
 
   if (isInitializing || !isAuthenticated || !isRegistered) return null;
 
   return (
-    <Container as="main" maxWidth="container.xl" padding={4} centerContent>
-      {children}
-    </Container>
+    <Box minHeight="100vh" backgroundColor="gray.50">
+      <Navbar isLoggedIn />
+      <HStack>
+        <Sidebar />
+        <Box as="main" width="full" marginTop={85} marginLeft={[0, 0, 300]} padding={4}>
+          {children}
+        </Box>
+      </HStack>
+    </Box>
   );
 };
 

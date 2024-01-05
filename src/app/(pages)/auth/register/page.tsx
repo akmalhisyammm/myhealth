@@ -2,11 +2,9 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 import {
   Box,
   Button,
-  Container,
   Divider,
   FormControl,
   FormErrorMessage,
@@ -34,13 +32,14 @@ import { AuthContext } from '@/lib/contexts/auth';
 import { dateToAge, dateToNat64 } from '@/lib/utils/date';
 import { registerSchema } from '@/lib/utils/schema';
 
+import type { Result } from 'azle';
 import type { InferType } from 'yup';
+import type { Error, Hospital } from '@/contract';
 
 const Register = () => {
-  const [isRegistering, setIsRegistering] = useState<boolean>(false);
+  const [hospitals, setHospitals] = useState<Hospital[]>([]);
 
-  const { isAuthenticated, isRegistered, isInitializing, isLoading, signUp } =
-    useContext(AuthContext);
+  const { actor, isLoading, signUp } = useContext(AuthContext);
   const {
     control,
     register,
@@ -51,6 +50,7 @@ const Register = () => {
     mode: 'onChange',
     defaultValues: {
       role: '',
+      hospitalId: '',
       nik: '',
       nip: '',
       name: '',
@@ -75,14 +75,13 @@ const Register = () => {
   });
 
   const role = useWatch({ control, name: 'role' });
-  const router = useRouter();
   const toast = useToast();
 
   const onSignUp = async (payload: InferType<typeof registerSchema>) => {
     try {
-      setIsRegistering(true);
       await signUp({
         ...payload,
+        hospitalId: payload.hospitalId || '',
         nik: payload.nik || '',
         nip: payload.nip || '',
         specialization: payload.specialization || '',
@@ -91,12 +90,11 @@ const Register = () => {
       });
       toast({
         title: 'Berhasil mendaftar!',
-        description: 'Anda akan diarahkan ke halaman utama.',
+        description: 'Anda diarahkan ke halaman utama.',
         status: 'success',
         duration: 3000,
         isClosable: true,
       });
-      setTimeout(() => router.push('/main/dashboard'), 1000);
     } catch (err) {
       toast({
         title: 'Gagal mendaftar!',
@@ -109,15 +107,13 @@ const Register = () => {
   };
 
   useEffect(() => {
-    if (isRegistering) return;
-    if (!isAuthenticated) return router.replace('/');
-    if (isRegistered) return router.replace('/main/dashboard');
-  }, [router, isAuthenticated, isRegistered, isRegistering]);
-
-  if ((isInitializing || !isAuthenticated || isRegistered) && !isRegistering) return null;
+    if (!actor || (role !== 'admin' && role !== 'doctor' && role !== 'nurse'))
+      return setHospitals([]);
+    actor.getAllHospitals().then((res: Result<any, Error>) => res.Ok && setHospitals(res.Ok));
+  }, [actor, role]);
 
   return (
-    <AuthLayout isRegistering={isRegistering}>
+    <AuthLayout>
       <Box>
         <Heading as="h3" size="lg" marginBottom={2}>
           Registrasi
@@ -167,13 +163,49 @@ const Register = () => {
 
         {role?.length && (
           <>
+            {(role === 'admin' || role === 'doctor' || role === 'nurse') && (
+              <FormControl
+                isInvalid={!!errors.hospitalId}
+                isRequired={role === 'doctor' || role === 'nurse'}
+              >
+                <FormLabel>Rumah Sakit</FormLabel>
+                <Controller
+                  control={control}
+                  name="hospitalId"
+                  defaultValue=""
+                  render={({ field: { value, onChange, ...rest } }) => (
+                    <Select
+                      placeholder="Pilih rumah sakit"
+                      options={hospitals.map((hospital) => ({
+                        value: hospital.id,
+                        label: hospital.name,
+                      }))}
+                      value={
+                        hospitals.find((hospital) => hospital.id === value)
+                          ? {
+                              value,
+                              label: hospitals.find((hospital) => hospital.id === value)?.name,
+                            }
+                          : null
+                      }
+                      onChange={(option) => onChange(option?.value || '')}
+                      {...rest}
+                    />
+                  )}
+                />
+                {errors.hospitalId && (
+                  <FormErrorMessage>{errors.hospitalId.message}</FormErrorMessage>
+                )}
+              </FormControl>
+            )}
+
             <Divider />
 
             <Heading as="h4" size="md">
               Data Diri
             </Heading>
 
-            {(role === 'doctor' || role === 'nurse') && (
+            {(role === 'admin' || role === 'doctor' || role === 'nurse') && (
               <HStack
                 alignItems="start"
                 width="full"
@@ -380,7 +412,7 @@ const Register = () => {
                 {errors.email && <FormErrorMessage>{errors.email.message}</FormErrorMessage>}
               </FormControl>
               <FormControl isInvalid={!!errors.phone} isRequired>
-                <FormLabel>Phone</FormLabel>
+                <FormLabel>Nomor Telepon</FormLabel>
                 <Input type="text" {...register('phone')} />
                 {errors.phone && <FormErrorMessage>{errors.phone.message}</FormErrorMessage>}
               </FormControl>

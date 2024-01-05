@@ -1,7 +1,8 @@
 export const ROLE_OPTIONS = [
-  { value: 'patient', label: 'Pasien' },
+  { value: 'admin', label: 'Administrasi' },
   { value: 'doctor', label: 'Dokter' },
   { value: 'nurse', label: 'Perawat' },
+  { value: 'patient', label: 'Pasien' },
 ];
 
 export const GENDER_OPTIONS = [

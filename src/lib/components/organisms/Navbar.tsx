@@ -1,8 +1,15 @@
-import pallete from '@/lib/style/pallete';
+'use client';
+
+import { useContext } from 'react';
 import {
   Box,
   Button,
   Container,
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerHeader,
+  DrawerOverlay,
   HStack,
   Heading,
   IconButton,
@@ -11,65 +18,190 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  VStack,
+  useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
-import { Nunito } from 'next/font/google';
 import { BiMenu } from 'react-icons/bi';
+import { FaCalendarAlt, FaNotesMedical, FaSignOutAlt } from 'react-icons/fa';
+import { MdDashboard } from 'react-icons/md';
+import { SiInternetcomputer } from 'react-icons/si';
 
-const nunito = Nunito({
-  subsets: ['latin'],
-  // weight: ['400', '500', '600', '700', '800', '900'],
-});
+import { AuthContext } from '@/lib/contexts/auth';
+import { usePathname, useRouter } from 'next/navigation';
 
-const Navbar = () => {
+type NavbarProps = {
+  isLoggedIn?: boolean;
+};
+
+const Navbar = ({ isLoggedIn }: NavbarProps) => {
+  const { isLoading, signIn, signOut } = useContext(AuthContext);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const pathname = usePathname();
+  const router = useRouter();
+  const toast = useToast();
+
+  const onSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: 'Berhasil keluar!',
+        description: 'Anda diarahkan ke halaman beranda.',
+        status: 'success',
+        duration: 3000,
+      });
+    } catch (err) {
+      toast({
+        title: 'Gagal keluar!',
+        description: 'Terjadi kesalahan, silakan coba lagi.',
+        status: 'error',
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <Box
       as="header"
       width="full"
-      height={85}
-      backgroundColor={'rgba(247, 250, 252, 0.8)'}
-      backdropFilter="blur(10px)"
       position="fixed"
+      backgroundColor={isLoggedIn ? 'white' : 'rgba(247, 250, 252, 0.8)'}
+      backdropFilter={isLoggedIn ? 'none' : 'blur(10px)'}
+      borderBottomWidth={2}
+      height={85}
       zIndex={5}
     >
-      <Container as="nav" maxWidth="container.xl" height="full" paddingY={2} centerContent>
-        <HStack justifyContent="space-between" alignItems="center" width="full" height="full">
-          <Heading
-            as="h3"
-            size="lg"
-            color={pallete.colors.blue[500]}
-            fontFamily={nunito.style.fontFamily}
-          >
+      <Container
+        as="nav"
+        height="full"
+        maxWidth={isLoggedIn ? 'full' : 'container.xl'}
+        paddingX={isLoggedIn ? [4, 4, 8] : 0}
+        paddingY={2}
+        centerContent
+      >
+        <HStack
+          width="full"
+          height="full"
+          alignItems="center"
+          justifyContent={isLoggedIn ? ['start', 'start', 'space-between'] : 'space-between'}
+          spacing={4}
+        >
+          {isLoggedIn && (
+            <>
+              <IconButton
+                aria-label="Navigation menu"
+                display={['flex', 'flex', 'none']}
+                icon={<BiMenu />}
+                onClick={onOpen}
+              />
+              <Drawer placement="left" onClose={onClose} isOpen={isOpen}>
+                <DrawerOverlay />
+                <DrawerContent>
+                  <DrawerHeader color="brand.500" fontWeight={700} borderBottomWidth={1}>
+                    MyHealth
+                  </DrawerHeader>
+                  <DrawerBody>
+                    <VStack alignItems="stretch">
+                      <Button
+                        variant={pathname === '/main/dashboard' ? 'solid' : 'ghost'}
+                        colorScheme="brand"
+                        size="lg"
+                        justifyContent="start"
+                        leftIcon={<MdDashboard />}
+                        onClick={() => router.push('/main/dashboard')}
+                      >
+                        Dashboard
+                      </Button>
+                      <Button
+                        variant={pathname === '/main/appointments' ? 'solid' : 'ghost'}
+                        colorScheme="brand"
+                        size="lg"
+                        justifyContent="start"
+                        leftIcon={<FaCalendarAlt />}
+                        onClick={() => router.push('/main/appointments')}
+                      >
+                        Janji Temu
+                      </Button>
+                      <Button
+                        variant={pathname === '/main/medical-records' ? 'solid' : 'ghost'}
+                        colorScheme="brand"
+                        size="lg"
+                        justifyContent="start"
+                        leftIcon={<FaNotesMedical />}
+                        onClick={() => router.push('/main/medical-records')}
+                      >
+                        Rekam Medis
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        colorScheme="red"
+                        size="lg"
+                        justifyContent="start"
+                        leftIcon={<FaSignOutAlt />}
+                        onClick={onSignOut}
+                      >
+                        Keluar
+                      </Button>
+                    </VStack>
+                  </DrawerBody>
+                </DrawerContent>
+              </Drawer>
+            </>
+          )}
+
+          <Heading as="h3" size="lg" color="brand.500">
             MyHealth
           </Heading>
 
-          <HStack spacing={8} display={['none', 'none', 'flex']}>
-            <Button variant="link">Beranda</Button>
-            <Button variant="link">Tentang</Button>
-            <Button variant="link">Dokter</Button>
-            <Button variant="link">Pelayanan</Button>
-            <Button variant="link">Kontak</Button>
-          </HStack>
+          {isLoggedIn ? (
+            <Button
+              colorScheme="red"
+              display={['none', 'none', 'flex']}
+              leftIcon={<FaSignOutAlt />}
+              onClick={onSignOut}
+            >
+              Keluar
+            </Button>
+          ) : (
+            <>
+              <HStack spacing={8} display={['none', 'none', 'flex']}>
+                <Button variant="link">Beranda</Button>
+                <Button variant="link">Tentang</Button>
+                <Button variant="link">Dokter</Button>
+                <Button variant="link">Pelayanan</Button>
+                <Button variant="link">Kontak</Button>
+              </HStack>
 
-          <Button colorScheme="blue" display={['none', 'none', 'flex']}>
-            Masuk
-          </Button>
+              <Button
+                colorScheme="brand"
+                display={['none', 'none', 'flex']}
+                loadingText="Masuk"
+                isLoading={isLoading}
+                onClick={signIn}
+                leftIcon={<SiInternetcomputer />}
+              >
+                Masuk
+              </Button>
 
-          <Menu isLazy>
-            <MenuButton
-              as={IconButton}
-              aria-label="Navigation menu"
-              display={['flex', 'flex', 'none']}
-              icon={<BiMenu />}
-            />
-            <MenuList>
-              <MenuItem>Masuk</MenuItem>
-              <MenuDivider />
-              <MenuItem>Beranda</MenuItem>
-              <MenuItem>Pelayanan</MenuItem>
-              <MenuItem>Tentang</MenuItem>
-              <MenuItem>Kontak</MenuItem>
-            </MenuList>
-          </Menu>
+              <Menu isLazy>
+                <MenuButton
+                  as={IconButton}
+                  aria-label="Navigation menu"
+                  display={['flex', 'flex', 'none']}
+                  icon={<BiMenu />}
+                />
+                <MenuList>
+                  <MenuItem onClick={signIn}>Masuk</MenuItem>
+                  <MenuDivider />
+                  <MenuItem>Beranda</MenuItem>
+                  <MenuItem>Pelayanan</MenuItem>
+                  <MenuItem>Tentang</MenuItem>
+                  <MenuItem>Kontak</MenuItem>
+                </MenuList>
+              </Menu>
+            </>
+          )}
         </HStack>
       </Container>
     </Box>

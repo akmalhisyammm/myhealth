@@ -1,11 +1,7 @@
-import { Nunito } from 'next/font/google';
-
 import { Providers } from './providers';
 import { APP_DESCRIPTION, APP_NAME, APP_URL } from '@/lib/constants/meta';
 
 import type { Metadata } from 'next';
-
-const nunito = Nunito({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s | ${APP_NAME}` },
@@ -46,7 +42,7 @@ export const metadata: Metadata = {
 const RootLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="id">
-      <body className={nunito.className}>
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>

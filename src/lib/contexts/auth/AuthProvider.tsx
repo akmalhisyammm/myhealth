@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (!isCallerRegistered) return setUser(null);
 
-      const user: Result<any, Error> = await actor.getMyProfile();
+      const user: Result<any, Error> = await actor.getCallerProfile();
 
       if (user.Err) throw new Error(Object.values(user.Err)[0]);
       setUser(user.Ok);
