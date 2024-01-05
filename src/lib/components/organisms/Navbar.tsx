@@ -1,3 +1,4 @@
+import pallete from '@/lib/style/pallete';
 import {
   Box,
   Button,
@@ -11,7 +12,13 @@ import {
   MenuItem,
   MenuList,
 } from '@chakra-ui/react';
+import { Nunito } from 'next/font/google';
 import { BiMenu } from 'react-icons/bi';
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  // weight: ['400', '500', '600', '700', '800', '900'],
+});
 
 const Navbar = () => {
   return (
@@ -24,16 +31,22 @@ const Navbar = () => {
       position="fixed"
       zIndex={5}
     >
-      <Container as="nav" maxWidth="container.lg" height="full" paddingY={2} centerContent>
+      <Container as="nav" maxWidth="container.xl" height="full" paddingY={2} centerContent>
         <HStack justifyContent="space-between" alignItems="center" width="full" height="full">
-          <Heading as="h3" size="lg" color="blue.500">
+          <Heading
+            as="h3"
+            size="lg"
+            color={pallete.colors.blue[500]}
+            fontFamily={nunito.style.fontFamily}
+          >
             MyHealth
           </Heading>
 
           <HStack spacing={8} display={['none', 'none', 'flex']}>
             <Button variant="link">Beranda</Button>
-            <Button variant="link">Pelayanan</Button>
             <Button variant="link">Tentang</Button>
+            <Button variant="link">Dokter</Button>
+            <Button variant="link">Pelayanan</Button>
             <Button variant="link">Kontak</Button>
           </HStack>
 
