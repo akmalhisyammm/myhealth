@@ -1,9 +1,8 @@
 'use client';
 
-import { useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Box, Button, VStack } from '@chakra-ui/react';
-import { FaCalendarAlt, FaNotesMedical, FaSignOutAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaNotesMedical } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 
 const Sidebar = () => {

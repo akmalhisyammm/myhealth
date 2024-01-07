@@ -20,21 +20,35 @@ import {
 import { yupResolver } from '@hookform/resolvers/yup';
 import Select from 'react-select';
 
-import { AuthLayout } from '@/lib/components/layouts';
+// import { APP_NAME, APP_URL } from '@/lib/constants/meta';
 import {
   ROLE_OPTIONS,
   GENDER_OPTIONS,
   BLOOD_TYPE_OPTIONS,
   BLOOD_RHESUS_OPTIONS,
   RELIGION_OPTIONS,
+  SPECIALIZATION_OPTIONS,
 } from '@/lib/constants/options';
 import { AuthContext } from '@/lib/contexts/auth';
+import { AuthLayout } from '@/lib/components/layouts';
 import { dateToAge, dateToNat64 } from '@/lib/utils/date';
 import { registerSchema } from '@/lib/utils/schema';
 
 import type { Result } from 'azle';
+// import type { Metadata } from 'next';
 import type { InferType } from 'yup';
 import type { Error, Hospital } from '@/contract';
+
+// export const metadata: Metadata = {
+//   title: 'Daftar',
+//   alternates: {
+//     canonical: '/auth/register',
+//   },
+//   openGraph: {
+//     title: `Daftar | ${APP_NAME}`,
+//     url: `${APP_URL}/auth/register`,
+//   },
+// };
 
 const Register = () => {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
@@ -98,7 +112,7 @@ const Register = () => {
     } catch (err) {
       toast({
         title: 'Gagal mendaftar!',
-        description: 'Terjadi kesalahan, silahkan coba lagi.',
+        description: 'Terjadi kesalahan, silakan coba lagi.',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -118,7 +132,7 @@ const Register = () => {
         <Heading as="h3" size="lg" marginBottom={2}>
           Registrasi
         </Heading>
-        <Text marginBottom={4}>Silahkan isi data diri anda dengan benar.</Text>
+        <Text marginBottom={4}>Silakan isi data diri anda dengan benar.</Text>
       </Box>
 
       <VStack
@@ -224,7 +238,22 @@ const Register = () => {
                 {role === 'doctor' && (
                   <FormControl isInvalid={!!errors.specialization} isRequired={role === 'doctor'}>
                     <FormLabel>Spesialisasi</FormLabel>
-                    <Input type="text" {...register('specialization')} />
+                    <Controller
+                      control={control}
+                      name="specialization"
+                      defaultValue=""
+                      render={({ field: { value, onChange, ...rest } }) => (
+                        <Select
+                          placeholder="Pilih spesialisasi"
+                          options={SPECIALIZATION_OPTIONS}
+                          value={
+                            SPECIALIZATION_OPTIONS.find((option) => option.value === value) || null
+                          }
+                          onChange={(option) => onChange(option?.value || '')}
+                          {...rest}
+                        />
+                      )}
+                    />
                     {errors.specialization && (
                       <FormErrorMessage>{errors.specialization.message}</FormErrorMessage>
                     )}
@@ -420,8 +449,8 @@ const Register = () => {
 
             <Button
               type="submit"
-              colorScheme="blue"
-              loadingText="Daftar"
+              colorScheme="brand"
+              loadingText="Mendaftar"
               width="full"
               marginY={2}
               isLoading={isLoading || isSubmitting}

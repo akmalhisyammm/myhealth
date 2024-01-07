@@ -16,6 +16,7 @@ type Context = {
   signUp: (payload: UserPayload) => Promise<void | null>;
   signIn: () => Promise<void | null>;
   signOut: () => Promise<void | null>;
+  refresh: () => Promise<void | null>;
 };
 
 export const AuthContext = createContext<Context>({
@@ -28,4 +29,5 @@ export const AuthContext = createContext<Context>({
   signUp: async () => null,
   signIn: async () => null,
   signOut: async () => null,
+  refresh: async () => null,
 });

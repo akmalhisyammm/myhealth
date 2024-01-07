@@ -6,6 +6,7 @@ import {
   GENDER_OPTIONS,
   RELIGION_OPTIONS,
   ROLE_OPTIONS,
+  SPECIALIZATION_OPTIONS,
 } from '@/lib/constants/options';
 
 /**
@@ -45,6 +46,15 @@ export const registerSchema = yup.object().shape({
         .max(18, 'NIP harus 18 digit'),
     otherwise: (schema) => schema,
   }),
+  specialization: yup.string().when('role', {
+    is: (role: string) => role === 'doctor',
+    then: (schema) =>
+      schema.required('Spesialisasi wajib diisi').oneOf(
+        SPECIALIZATION_OPTIONS.map((option) => option.value),
+        'Spesialisasi tidak valid'
+      ),
+    otherwise: (schema) => schema,
+  }),
   name: yup.string().required('Nama wajib diisi'),
   gender: yup
     .string()
@@ -53,11 +63,6 @@ export const registerSchema = yup.object().shape({
       GENDER_OPTIONS.map((option) => option.value),
       'Jenis kelamin tidak valid'
     ),
-  specialization: yup.string().when('role', {
-    is: (role: string) => role === 'doctor',
-    then: (schema) => schema.required('Spesialisasi wajib diisi'),
-    otherwise: (schema) => schema,
-  }),
   // schedules: yup.array().when('role', {
   //   is: (role: string) => role === 'doctor',
   //   then: (schema) =>
@@ -132,4 +137,57 @@ export const registerSchema = yup.object().shape({
     .min(5, 'Kode pos harus 5 digit')
     .max(5, 'Kode pos harus 5 digit'),
   country: yup.string().required('Negara wajib diisi'),
+});
+
+/**
+ * Appointment schema for validation form
+ * @constant {yup.ObjectSchema} appointmentSchema
+ */
+export const appointmentSchema = yup.object().shape({
+  hospitalId: yup.string().required('Rumah sakit wajib diisi'),
+  doctorId: yup.string().required('Dokter wajib diisi'),
+  specialization: yup
+    .string()
+    .required('Spesialisasi wajib diisi')
+    .oneOf(
+      SPECIALIZATION_OPTIONS.map((option) => option.value),
+      'Spesialisasi tidak valid'
+    ),
+  startTime: yup
+    .date()
+    .required('Tanggal dan waktu wajib diisi')
+    .min(new Date(), 'Tanggal dan waktu harus setelah hari ini')
+    .typeError('Tanggal dan waktu tidak valid'),
+  complaint: yup.string().required('Keluhan wajib diisi'),
+});
+
+/**
+ * Schedule schema for validation form
+ * @constant {yup.ObjectSchema} scheduleSchema
+ */
+export const scheduleSchema = yup.object().shape({
+  schedules: yup
+    .array()
+    .of(
+      yup.object().shape({
+        startTime: yup.string().when('isActive', {
+          is: (isActive: boolean) => isActive,
+          then: (schema) =>
+            schema
+              .required('Jam mulai wajib diisi')
+              .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Jam mulai tidak valid'),
+          otherwise: (schema) => schema,
+        }),
+        endTime: yup.string().when('isActive', {
+          is: (isActive: boolean) => isActive,
+          then: (schema) =>
+            schema
+              .required('Jam selesai wajib diisi')
+              .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Jam selesai tidak valid'),
+          otherwise: (schema) => schema,
+        }),
+        isActive: yup.boolean().required('Status wajib diisi'),
+      })
+    )
+    .required('Jadwal praktek wajib diisi'),
 });

@@ -5,6 +5,19 @@ export const ROLE_OPTIONS = [
   { value: 'patient', label: 'Pasien' },
 ];
 
+export const SPECIALIZATION_OPTIONS = [
+  { value: 'Umum', label: 'Umum' },
+  { value: 'Anak', label: 'Anak' },
+  { value: 'Bedah', label: 'Bedah' },
+  { value: 'Gigi', label: 'Gigi' },
+  { value: 'Kandungan', label: 'Kandungan' },
+  { value: 'Kulit', label: 'Kulit' },
+  { value: 'Mata', label: 'Mata' },
+  { value: 'Penyakit Dalam', label: 'Penyakit Dalam' },
+  { value: 'THT', label: 'THT' },
+  { value: 'Tulang', label: 'Tulang' },
+];
+
 export const GENDER_OPTIONS = [
   { value: 'male', label: 'Laki-Laki' },
   { value: 'female', label: 'Perempuan' },
