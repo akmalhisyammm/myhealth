@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   CardHeader,
-  FormControl,
   HStack,
   Heading,
   Highlight,
@@ -38,9 +37,8 @@ const Home = () => {
         height="full"
         alignItems="center"
         color="white"
-        backgroundColor="brand.500"
+        bgGradient="linear(to-r, brand.500, brand.300)"
         paddingX={[4, 4, 12]}
-        marginBottom={8}
         minHeight={650}
         spacing={12}
       >
@@ -63,7 +61,7 @@ const Home = () => {
             loadingText="Masuk dengan Internet Identity"
             width={['full', 'auto', 'auto']}
             marginY={4}
-            leftIcon={<Image src="icons/icp-logo.png" alt="ICP Logo" width={[18, 30, 30]} />}
+            leftIcon={<Image src="/icons/icp-logo.png" alt="ICP Logo" width={[18, 30, 30]} />}
             isLoading={isLoading}
             onClick={signIn}
           >
@@ -71,7 +69,7 @@ const Home = () => {
           </Button>
         </VStack>
         <Image
-          src="images/doctor-1.png"
+          src="/images/doctor-1.png"
           alt="Doctor 1"
           width={600}
           marginTop="auto"
@@ -92,7 +90,7 @@ const Home = () => {
       >
         <SimpleGrid columns={2} spacing={4} width="full">
           <Image
-            src="images/hospital-1.jpg"
+            src="/images/hospital-1.jpg"
             alt="Hospital 1"
             width="full"
             boxShadow="sm"
@@ -100,7 +98,7 @@ const Home = () => {
             borderTopLeftRadius={24}
           />
           <Image
-            src="images/hospital-2.jpg"
+            src="/images/hospital-2.jpg"
             alt="Hospital 2"
             width="full"
             boxShadow="sm"
@@ -108,7 +106,7 @@ const Home = () => {
             borderTopRightRadius={24}
           />
           <Image
-            src="images/hospital-3.jpg"
+            src="/images/hospital-3.jpg"
             alt="Hospital 3"
             width="full"
             boxShadow="sm"
@@ -116,7 +114,7 @@ const Home = () => {
             borderBottomLeftRadius={24}
           />
           <Image
-            src="images/hospital-4.jpg"
+            src="/images/hospital-4.jpg"
             alt="Hospital 4"
             width="full"
             boxShadow="sm"
@@ -299,7 +297,7 @@ const Home = () => {
       <HStack
         width="full"
         height="full"
-        background="white"
+        backgroundColor="white"
         flexDirection={['column', 'column', 'row']}
         alignItems="start"
         paddingX={[4, 4, 12]}
@@ -365,7 +363,7 @@ const Home = () => {
         </VStack>
         <SimpleGrid columns={2} spacing={4} width="full" justifyContent={'center'}>
           <Image
-            src="images/hospital-1.jpg"
+            src="/images/hospital-1.jpg"
             alt="Hospital 1"
             width="full"
             boxShadow="sm"
@@ -373,7 +371,7 @@ const Home = () => {
             borderTopLeftRadius={24}
           />
           <Image
-            src="images/hospital-2.jpg"
+            src="/images/hospital-2.jpg"
             alt="Hospital 2"
             width="full"
             boxShadow="sm"
@@ -381,7 +379,7 @@ const Home = () => {
             borderTopRightRadius={24}
           />
           <Image
-            src="images/hospital-3.jpg"
+            src="/images/hospital-3.jpg"
             alt="Hospital 3"
             width="full"
             boxShadow="sm"
@@ -389,7 +387,7 @@ const Home = () => {
             borderBottomLeftRadius={24}
           />
           <Image
-            src="images/hospital-4.jpg"
+            src="/images/hospital-4.jpg"
             alt="Hospital 4"
             width="full"
             boxShadow="sm"
@@ -399,9 +397,16 @@ const Home = () => {
         </SimpleGrid>
       </HStack>
 
-      <HStack width="full" height="full" alignItems="center" paddingX={[4, 4, 12]} spacing={12}>
+      <HStack
+        width="full"
+        height="full"
+        alignItems="center"
+        paddingX={[4, 4, 12]}
+        paddingTop={4}
+        spacing={12}
+      >
         <Image
-          src="images/doctor-2.png"
+          src="/images/doctor-2.png"
           alt="Doctor 2"
           width={500}
           marginTop="auto"
@@ -414,9 +419,7 @@ const Home = () => {
           <Text fontSize="md" textAlign="justify">
             Jangan ragu untuk menghubungi kami.
           </Text>
-          <FormControl>
-            <Textarea placeholder="Pesan Anda..." />
-          </FormControl>
+          <Textarea placeholder="Pesan Anda" backgroundColor="white" />
           <Button colorScheme="brand">Kirim Pesan</Button>
         </VStack>
       </HStack>

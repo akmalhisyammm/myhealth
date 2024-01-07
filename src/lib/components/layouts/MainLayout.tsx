@@ -2,13 +2,13 @@
 
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, HStack } from '@chakra-ui/react';
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, HStack } from '@chakra-ui/react';
 
 import { AuthContext } from '@/lib/contexts/auth';
 import { Navbar, Sidebar } from '@/lib/components/organisms';
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, isRegistered, isInitializing } = useContext(AuthContext);
+  const { user, isAuthenticated, isRegistered, isInitializing } = useContext(AuthContext);
 
   const router = useRouter();
 
@@ -25,6 +25,13 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       <HStack>
         <Sidebar />
         <Box as="main" width="full" marginTop={85} marginLeft={[0, 0, 300]} padding={4}>
+          {!user?.isVerified && (
+            <Alert status="warning" variant="left-accent" marginBottom={4}>
+              <AlertIcon />
+              <AlertTitle>Anda belum terverifikasi!</AlertTitle>
+              <AlertDescription>Silakan hubungi admin untuk melakukan verifikasi.</AlertDescription>
+            </Alert>
+          )}
           {children}
         </Box>
       </HStack>

@@ -22,7 +22,7 @@ import {
 } from 'azle';
 import { v4 as uuidv4 } from 'uuid';
 
-const USER_ROLES = ['doctor', 'nurse', 'patient'];
+const USER_ROLES = ['admin', 'doctor', 'nurse', 'patient'];
 
 const Hospital = Record({
   id: text,
@@ -47,7 +47,7 @@ const User = Record({
   nip: Opt(text),
   name: text,
   specialization: Opt(text),
-  schedules: Opt(Vec(Record({ day: text, startTime: text, endTime: text }))),
+  schedules: Opt(Vec(Record({ startTime: text, endTime: text, isActive: bool }))),
   email: text,
   phone: text,
   age: nat8,
@@ -71,9 +71,13 @@ const User = Record({
 
 const Appointment = Record({
   id: text,
+  hospitalId: text,
   patientId: Principal,
   doctorId: Principal,
-  dateTime: nat64,
+  specialization: text,
+  startTime: nat64,
+  endTime: nat64,
+  complaint: text,
   isApproved: bool,
   createdAt: nat64,
   updatedAt: nat64,
@@ -127,9 +131,16 @@ const UserPayload = Record({
   country: text,
 });
 
+const SchedulePayload = Record({
+  schedules: Vec(Record({ startTime: text, endTime: text, isActive: bool })),
+});
+
 const AppointmentPayload = Record({
+  hospitalId: text,
   doctorId: Principal,
-  dateTime: nat64,
+  specialization: text,
+  startTime: nat64,
+  complaint: text,
 });
 
 const MedicalRecordPayload = Record({
@@ -154,6 +165,12 @@ const medicalRecordStorage = StableBTreeMap(text, MedicalRecord, 3);
 // Helper function to check whether the user exists.
 const isUserExists = (id: Principal): bool => userStorage.containsKey(id);
 
+// Helper function to check whether the user is an owner.
+const isUserOwner = (id: Principal): bool => userStorage.get(id).Some.role === 'owner';
+
+// Helper function to check whether the user is an owner and admin.
+const isUserAdmin = (id: Principal): bool => userStorage.get(id).Some.role === 'admin';
+
 // Helper function to check whether the user is a doctor.
 const isUserDoctor = (id: Principal): bool => userStorage.get(id).Some.role === 'doctor';
 
@@ -163,21 +180,18 @@ const isUserNurse = (id: Principal): bool => userStorage.get(id).Some.role === '
 // Helper function to check whether the user is a patient.
 const isUserPatient = (id: Principal): bool => userStorage.get(id).Some.role === 'patient';
 
-// Helper function to check whether the user is a admin.
-const isUserAdmin = (id: Principal): bool => userStorage.get(id).Some.role === 'admin';
-
 // Helper function to check whether the user is verified.
 const isUserVerified = (id: Principal): bool => userStorage.get(id).Some.isVerified;
 
 // Helper function to check whether the doctor is available.
-const isDoctorAvailable = (id: Principal, dateTime: nat64): bool =>
+const isDoctorAvailable = (id: Principal, startTime: nat64): bool =>
   appointmentStorage
     .values()
     .filter((appointment: typeof Appointment) => appointment.doctorId === id)
     .every(
       (appointment: typeof Appointment) =>
-        dateTime < appointment.dateTime - BigInt(900000) ||
-        dateTime > appointment.dateTime + BigInt(900000)
+        startTime < appointment.startTime - BigInt(1_800_000_000_000) ||
+        startTime > appointment.endTime
     );
 
 // Helper function to check whether the medical record exists.
@@ -191,26 +205,26 @@ export default Canister({
    * Initializes the canister.
    */
   init: init([], () => {
-    // Create admin user and insert it into storage.
-    const admin = {
+    // Create owners and insert them into storage.
+    const firstOwner = {
       id: Principal.fromText('ojdzb-hqznc-io47i-fr5j5-fj3y5-2ikeg-5c4ym-uayng-g7im2-pwfle-4qe'),
       hospitalId: None,
-      role: 'admin',
+      role: 'owner',
       nik: None,
       nip: None,
-      name: 'Admin',
+      name: 'Muhammad Akmal Hisyam',
       specialization: None,
       schedules: None,
-      email: 'admin@myhealth.id',
+      email: 'muhammad.akmal@myhealth.id',
       phone: '081234567890',
       age: 22,
       gender: 'male',
       birthPlace: 'Tangerang',
-      birthDate: BigInt(2000000000000000),
+      birthDate: BigInt(2_000_000_000_000_000_000n),
       bloodType: 'O',
       bloodRhesus: '+',
       religion: 'Islam',
-      address: 'Sari Bumi Indah Blok A1 No. 1',
+      address: 'Jl. Isekai No. 70',
       subDistrict: 'Binong',
       district: 'Curug',
       city: 'Tangerang',
@@ -221,10 +235,40 @@ export default Canister({
       createdAt: ic.time(),
       updatedAt: ic.time(),
     };
-    userStorage.insert(admin.id, admin);
+    const secondOwner = {
+      id: Principal.fromText('kzwy6-dofh2-qqkqq-eli34-4qozm-o3l7z-3qefj-agytc-6doxm-6bnur-2qe'),
+      hospitalId: None,
+      role: 'owner',
+      nik: None,
+      nip: None,
+      name: 'Rilo Anggoro Saputra',
+      specialization: None,
+      schedules: None,
+      email: 'rilo.anggoro@myhealth.id',
+      phone: '081234567890',
+      age: 22,
+      gender: 'male',
+      birthPlace: 'Tangerang',
+      birthDate: BigInt(2_000_000_000_000_000_000n),
+      bloodType: 'O',
+      bloodRhesus: '+',
+      religion: 'Islam',
+      address: 'Jl. Isekai No. 71',
+      subDistrict: 'Binong',
+      district: 'Curug',
+      city: 'Tangerang',
+      province: 'Banten',
+      postalCode: '12345',
+      country: 'Indonesia',
+      isVerified: true,
+      createdAt: ic.time(),
+      updatedAt: ic.time(),
+    };
+    userStorage.insert(firstOwner.id, firstOwner);
+    userStorage.insert(secondOwner.id, secondOwner);
 
-    // Create hospital and insert it into storage.
-    const hospital = {
+    // Create hospitals and insert it into storage.
+    const firstHospital = {
       id: uuidv4(),
       name: 'RSUD Tangerang',
       description: 'Rumah sakit umum daerah Tangerang',
@@ -238,18 +282,34 @@ export default Canister({
       createdAt: ic.time(),
       updatedAt: ic.time(),
     };
-    hospitalStorage.insert(hospital.id, hospital);
+    const secondHospital = {
+      id: uuidv4(),
+      name: 'RSUD Cilegon',
+      description: 'Rumah sakit umum daerah Cilegon',
+      address: 'Jl. Jend. Sudirman No. 3',
+      subDistrict: 'Kebon Nanas',
+      district: 'Cilegon',
+      city: 'Cilegon',
+      province: 'Banten',
+      postalCode: '15118',
+      country: 'Indonesia',
+      createdAt: ic.time(),
+      updatedAt: ic.time(),
+    };
+    hospitalStorage.insert(firstHospital.id, secondHospital);
+    hospitalStorage.insert(secondHospital.id, secondHospital);
   }),
 
+  /* -------------------- HOSPITAL -------------------- */
   /**
-   * Creates a new hospital by the admin.
+   * Creates a new hospital by the owner.
    * @param payload - Payload for creating a new hospital.
    * @returns the created hospital or an error.
    */
   createHospital: update([HospitalPayload], Result(Hospital, Error), (payload) => {
     try {
       // If caller is not admin, return error.
-      if (!isUserAdmin(ic.caller())) {
+      if (!isUserOwner(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk mendaftarkan rumah sakit' });
       }
 
@@ -278,6 +338,28 @@ export default Canister({
     }
   }),
 
+  /**
+   * Retrieves a hospital by ID.
+   * @param id - The hospital ID.
+   * @returns a hospital by ID or an error.
+   */
+  getHospital: query([text], Result(Hospital, Error), (id) => {
+    try {
+      // If hospital does not exist, return error.
+      if (!hospitalStorage.containsKey(id)) {
+        return Err({ NotFound: 'Rumah sakit tidak ditemukan' });
+      }
+
+      // Return the hospital by id.
+      const hospital = hospitalStorage.get(id).Some;
+      return Ok(hospital);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /* -------------------- USER -------------------- */
   /**
    * Checks whether the caller is registered.
    * @returns true if the caller is registered, false otherwise.
@@ -336,7 +418,10 @@ export default Canister({
         nik: payload.role === 'patient' ? Some(payload.nik) : None,
         nip: payload.role === 'doctor' || payload.role === 'nurse' ? Some(payload.nip) : None,
         specialization: payload.role === 'doctor' ? Some(payload.specialization) : None,
-        schedules: None,
+        schedules:
+          payload.role === 'doctor'
+            ? Some(Array(7).fill({ startTime: '', endTime: '', isActive: false }))
+            : None,
         isVerified: false,
         createdAt: ic.time(),
         updatedAt: ic.time(),
@@ -355,11 +440,6 @@ export default Canister({
    */
   getCallerProfile: query([], Result(User, Error), () => {
     try {
-      // If caller does not exist, return error.
-      if (!isUserExists(ic.caller())) {
-        return Err({ NotFound: 'Anda belum terdaftar' });
-      }
-
       // Return the caller profile.
       const caller = userStorage.get(ic.caller()).Some;
       return Ok(caller);
@@ -370,13 +450,13 @@ export default Canister({
   }),
 
   /**
-   * Retrieves all users for the admin.
+   * Retrieves all users for the owner and admin.
    * @returns all users or an error.
    */
   getAllUsers: query([], Result(Vec(User), Error), () => {
     try {
       // If caller is not admin, return error.
-      if (!isUserAdmin(ic.caller())) {
+      if (!isUserOwner(ic.caller()) && !isUserAdmin(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat semua pengguna' });
       }
 
@@ -390,13 +470,118 @@ export default Canister({
   }),
 
   /**
-   * Retrieves the unverified users for the admin.
+   * Retrieves an user by ID.
+   * @param id - The user ID.
+   * @returns an user by ID or an error.
+   */
+  getUser: query([Principal], Result(User, Error), (id) => {
+    try {
+      // If user does not exist, return error.
+      if (!isUserExists(id)) {
+        return Err({ NotFound: 'Pengguna tidak ditemukan' });
+      }
+
+      // Return the user by id.
+      const user = userStorage.get(id).Some;
+      return Ok(user);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Retrieves all doctor specializations by hospital ID for the patient.
+   * @param hospitalId - The hospital ID.
+   * @returns all doctor specializations by hospital ID or an error.
+   */
+  getSpecializationsByHospital: query([text], Result(Vec(text), Error), (hospitalId) => {
+    try {
+      // If caller is not patient, return error.
+      if (!isUserPatient(ic.caller())) {
+        return Err({
+          Forbidden: 'Anda tidak memiliki akses untuk melihat semua spesialisasi dokter',
+        });
+      }
+
+      // If hospital does not exist, return error.
+      if (!hospitalStorage.containsKey(hospitalId)) {
+        return Err({ NotFound: 'Rumah sakit tidak ditemukan' });
+      }
+
+      // Return all doctor specializations by hospital id.
+      const specializations = userStorage
+        .values()
+        .filter(
+          (user: typeof User) =>
+            user.role === 'doctor' && user.hospitalId.Some === hospitalId && user.isVerified
+        )
+        .map((user: typeof User) => user.specialization.Some)
+        .filter(
+          (specialization: string, index: number, self: string[]) =>
+            self.indexOf(specialization) === index
+        );
+      return Ok(specializations);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Retrieves all doctors by hospital ID and specialization for the patient.
+   * @param hospitalId - The hospital ID.
+   * @param specialization - The doctor specialization.
+   * @returns all doctors by hospital ID and specialization or an error.
+   */
+  getDoctorsByHospitalAndSpecialization: query(
+    [text, text],
+    Result(Vec(User), Error),
+    (hospitalId, specialization) => {
+      try {
+        // If caller does not exist, return error.
+        if (!isUserExists(ic.caller())) {
+          return Err({ NotFound: 'Anda belum terdaftar' });
+        }
+
+        // If caller is not patient, return error.
+        if (!isUserPatient(ic.caller())) {
+          return Err({
+            Forbidden: 'Anda tidak memiliki akses untuk melihat semua dokter',
+          });
+        }
+
+        // If hospital does not exist, return error.
+        if (!hospitalStorage.containsKey(hospitalId)) {
+          return Err({ NotFound: 'Rumah sakit tidak ditemukan' });
+        }
+
+        // Return all doctors by hospital id and specialization.
+        const doctors = userStorage
+          .values()
+          .filter(
+            (user: typeof User) =>
+              user.role === 'doctor' &&
+              user.hospitalId.Some === hospitalId &&
+              user.specialization.Some === specialization &&
+              user.isVerified
+          );
+        return Ok(doctors);
+      } catch (error) {
+        // If any error occurs, return it.
+        return Err({ InternalError: 'Terjadi kesalahan' });
+      }
+    }
+  ),
+
+  /**
+   * Retrieves the unverified users for the owner and admin.
    * @returns unverified users or an error.
    */
   getUnverifiedUsers: query([], Result(Vec(User), Error), () => {
     try {
       // If caller is not admin, return error.
-      if (!isUserAdmin(ic.caller())) {
+      if (!isUserOwner(ic.caller()) && !isUserAdmin(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat daftar pengguna' });
       }
 
@@ -410,7 +595,41 @@ export default Canister({
   }),
 
   /**
-   * Reviews user registration by the admin.
+   * Updates the doctor schedules by the doctor.
+   * @param schedules - The doctor schedules.
+   * @returns the updated user or an error.
+   */
+  updateSchedules: update([SchedulePayload], Result(User, Error), (payload) => {
+    try {
+      // If caller is not doctor, return error.
+      if (!isUserDoctor(ic.caller())) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk mengubah jadwal praktek' });
+      }
+
+      // If schedules length is not 7, return error.
+      if (payload.schedules.length !== 7) {
+        return Err({ BadRequest: 'Jadwal praktek harus 7 hari' });
+      }
+
+      // Get the doctor from storage.
+      const doctor = userStorage.get(ic.caller()).Some;
+
+      // Update the doctor schedules and return it.
+      const updatedDoctor = {
+        ...doctor,
+        schedules: Some(payload.schedules),
+        updatedAt: ic.time(),
+      };
+      userStorage.insert(doctor.id, updatedDoctor);
+      return Ok(updatedDoctor);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Reviews user registration by the owner and admin.
    * @param id - The user id.
    * @param isApproved - Whether the user is approved or not.
    * @returns the reviewed user or an error.
@@ -418,7 +637,7 @@ export default Canister({
   reviewUser: update([Principal, bool], Result(User, Error), (id, isApproved) => {
     try {
       // If caller is not admin, return error.
-      if (!isUserAdmin(ic.caller())) {
+      if (!isUserOwner(ic.caller()) && !isUserAdmin(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk meninjau pengguna' });
       }
 
@@ -430,8 +649,8 @@ export default Canister({
       // Get the user from storage.
       const user = userStorage.get(id).Some;
 
-      // If user is admin, return error.
-      if (user.role === 'admin') {
+      // If caller is admin and user is admin, return error.
+      if (isUserAdmin(ic.caller()) && user.role === 'admin') {
         return Err({ BadRequest: 'Anda tidak dapat meninjau akun admin' });
       }
 
@@ -456,6 +675,7 @@ export default Canister({
     }
   }),
 
+  /* -------------------- APPOINTMENT -------------------- */
   /**
    * Creates a new appointment with a doctor by the patient.
    * @param payload - Payload for creating a new appointment.
@@ -463,11 +683,6 @@ export default Canister({
    */
   createAppointment: update([AppointmentPayload], Result(Appointment, Error), (payload) => {
     try {
-      // If caller does not exist, return error.
-      if (!isUserExists(ic.caller())) {
-        return Err({ NotFound: 'Anda belum terdaftar' });
-      }
-
       // If caller is not patient, return error.
       if (!isUserPatient(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk membuat janji temu' });
@@ -489,12 +704,12 @@ export default Canister({
       }
 
       // If date time is less or equal than current time, return error.
-      if (payload.dateTime <= ic.time()) {
+      if (payload.startTime <= ic.time()) {
         return Err({ BadRequest: 'Waktu yang dipilih harus setelah waktu saat ini' });
       }
 
       // If doctor is not available, return error.
-      if (!isDoctorAvailable(payload.doctorId, payload.dateTime)) {
+      if (!isDoctorAvailable(payload.doctorId, payload.startTime)) {
         return Err({ BadRequest: 'Dokter tidak tersedia pada waktu yang dipilih' });
       }
 
@@ -503,6 +718,7 @@ export default Canister({
         ...payload,
         id: uuidv4(),
         patientId: ic.caller(),
+        endTime: payload.startTime + BigInt(1_800_000_000_000),
         isApproved: false,
         createdAt: ic.time(),
         updatedAt: ic.time(),
@@ -516,30 +732,170 @@ export default Canister({
   }),
 
   /**
-   * Retrieves the caller appointments.
-   * @returns the caller appointments or an error.
+   * Retrieves all appointments for for the owner.
+   * @returns all appointments or an error.
    */
-  getCallerAppointments: query([], Result(Vec(Appointment), Error), () => {
+  getAllAppointments: query([], Result(Vec(Appointment), Error), () => {
     try {
-      // If caller does not exist, return error.
-      if (!isUserExists(ic.caller())) {
-        return Err({ NotFound: 'Anda belum terdaftar' });
+      // If caller is not admin, return error.
+      if (!isUserOwner(ic.caller())) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat semua janji temu' });
       }
 
+      // Return all appointments.
+      const appointments = appointmentStorage.values();
+      return Ok(appointments);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Retrieves an appointment by ID.
+   * @returns an appointment by ID or an error.
+   */
+  getAppointment: query([text], Result(Appointment, Error), (id) => {
+    try {
+      // If caller is not admin, return error.
+      if (!isUserOwner(ic.caller())) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat janji temu' });
+      }
+
+      // If appointment does not exist, return error.
+      if (!isAppointmentExists(id)) {
+        return Err({ NotFound: 'Janji temu tidak ditemukan' });
+      }
+
+      // Return the appointment by id.
+      const appointment = appointmentStorage.get(id).Some;
+      return Ok(appointment);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Retrieves the upcoming caller appointments for the patient and doctor.
+   * @returns the upcoming caller appointments or an error.
+   */
+  getUpcomingCallerAppointments: query([], Result(Vec(Appointment), Error), () => {
+    try {
       // If caller is not patient or doctor, return error.
       if (!isUserPatient(ic.caller()) && !isUserDoctor(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat janji temu' });
       }
 
-      // Return the caller appointments filtered by caller id and date time.
-      const filteredAppointments = appointmentStorage
+      // Return the caller appointments filtered by caller id.
+      const appointments = appointmentStorage
         .values()
         .filter((appointment: typeof Appointment) =>
           userStorage.get(ic.caller()).Some.role === 'patient'
-            ? appointment.patientId === ic.caller() && appointment.dateTime > ic.time()
-            : appointment.doctorId === ic.caller() && appointment.dateTime > ic.time()
+            ? appointment.patientId.toText() === ic.caller().toText()
+            : appointment.doctorId.toText() === ic.caller().toText() &&
+              appointment.startTime > ic.time()
         );
-      return Ok(filteredAppointments);
+      return Ok(appointments);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Retrieves the past caller appointments for the patient and doctor.
+   * @returns the past caller appointments or an error.
+   */
+  getPastCallerAppointments: query([], Result(Vec(Appointment), Error), () => {
+    try {
+      // If caller is not patient or doctor, return error.
+      if (!isUserPatient(ic.caller()) && !isUserDoctor(ic.caller())) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat janji temu' });
+      }
+
+      // Return the caller appointments filtered by caller id.
+      const appointments = appointmentStorage
+        .values()
+        .filter((appointment: typeof Appointment) =>
+          userStorage.get(ic.caller()).Some.role === 'patient'
+            ? appointment.patientId.toText() === ic.caller().toText()
+            : appointment.doctorId.toText() === ic.caller().toText() &&
+              appointment.startTime <= ic.time()
+        );
+      return Ok(appointments);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Retrieves the upcoming doctor appointments by doctor ID for the patient.
+   * @param doctorId - The doctor ID.
+   * @returns the upcoming doctor appointments by doctor ID or an error.
+   */
+  getUpcomingDoctorAppointments: query([Principal], Result(Vec(Appointment), Error), (doctorId) => {
+    try {
+      // If doctor does not exist, return error.
+      if (!isUserExists(doctorId)) {
+        return Err({ NotFound: 'Dokter tidak ditemukan' });
+      }
+
+      // If caller is not patient, return error.
+      if (!isUserPatient(ic.caller())) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat janji temu' });
+      }
+
+      // Return the upcoming doctor appointments by doctor ID.
+      const appointments = appointmentStorage
+        .values()
+        .filter(
+          (appointment: typeof Appointment) =>
+            appointment.doctorId.toText() === doctorId.toText() &&
+            appointment.startTime > ic.time() &&
+            appointment.isApproved
+        );
+      return Ok(appointments);
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan' });
+    }
+  }),
+
+  /**
+   * Deletes the appointment by the patient.
+   * @param id - The appointment id.
+   * @returns the deleted appointment or an error.
+   */
+  deleteAppointment: update([text], Result(Appointment, Error), (id) => {
+    try {
+      // If caller is not patient, return error.
+      if (!isUserPatient(ic.caller())) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk menghapus janji temu' });
+      }
+
+      // If appointment does not exist, return error.
+      if (!isAppointmentExists(id)) {
+        return Err({ NotFound: 'Janji temu tidak ditemukan' });
+      }
+
+      // Get the appointment from storage.
+      const appointment = appointmentStorage.get(id).Some;
+
+      // If caller is not the patient of the appointment, return error.
+      if (appointment.patientId.toText() !== ic.caller().toText()) {
+        return Err({ Forbidden: 'Anda tidak memiliki akses untuk menghapus janji temu' });
+      }
+
+      // If appointment is already approved, return error.
+      if (appointment.isApproved) {
+        return Err({ BadRequest: 'Janji temu telah disetujui' });
+      }
+
+      // Delete the appointment and return it.
+      appointmentStorage.remove(appointment.id);
+      return Ok(appointment);
     } catch (error) {
       // If any error occurs, return it.
       return Err({ InternalError: 'Terjadi kesalahan' });
@@ -554,11 +910,6 @@ export default Canister({
    */
   reviewAppointment: update([text, bool], Result(Appointment, Error), (id, isApproved) => {
     try {
-      // If caller does not exist, return error.
-      if (!isUserExists(ic.caller())) {
-        return Err({ NotFound: 'Anda belum terdaftar' });
-      }
-
       // If caller is not doctor, return error.
       if (!isUserDoctor(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk meninjau janji temu' });
@@ -573,7 +924,7 @@ export default Canister({
       const appointment = appointmentStorage.get(id).Some;
 
       // If caller is not the doctor of the appointment, return error.
-      if (appointment.doctorId !== ic.caller()) {
+      if (appointment.doctorId.toText() !== ic.caller().toText()) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk meninjau janji temu' });
       }
 
@@ -603,6 +954,7 @@ export default Canister({
     }
   }),
 
+  /* -------------------- MEDICAL RECORD -------------------- */
   /**
    * Creates a new patient medical record by the doctor.
    * @param payload - Payload for creating a new medical record.
@@ -610,11 +962,6 @@ export default Canister({
    */
   createMedicalRecord: update([MedicalRecordPayload], Result(MedicalRecord, Error), (payload) => {
     try {
-      // If caller does not exist, return error.
-      if (!isUserExists(ic.caller())) {
-        return Err({ NotFound: 'Anda belum terdaftar' });
-      }
-
       // If caller is not doctor, return error.
       if (!isUserDoctor(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk membuat rekam medis' });
@@ -647,11 +994,6 @@ export default Canister({
    */
   getCallerMedicalRecords: query([], Result(Vec(MedicalRecord), Error), () => {
     try {
-      // If caller does not exist, return error.
-      if (!isUserExists(ic.caller())) {
-        return Err({ NotFound: 'Anda belum terdaftar' });
-      }
-
       // If caller is not patient, return error.
       if (!isUserPatient(ic.caller())) {
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat rekam medis' });
@@ -660,7 +1002,10 @@ export default Canister({
       // Return the caller medical records.
       const medicalRecords = medicalRecordStorage
         .values()
-        .filter((medicalRecord: typeof MedicalRecord) => medicalRecord.patientId === ic.caller());
+        .filter(
+          (medicalRecord: typeof MedicalRecord) =>
+            medicalRecord.patientId.toText() === ic.caller().toText()
+        );
       return Ok(medicalRecords);
     } catch (error) {
       // If any error occurs, return it.

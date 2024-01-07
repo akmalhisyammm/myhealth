@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsRegistered(false);
       setUser(null);
 
-      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+      throw new Error('Terjadi kesalahan, silakan masuk kembali!');
     } finally {
       setIsInitializing(false);
     }
@@ -94,14 +94,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
 
-      if (!authClient) throw new Error('AuthClient belum diinisialisasi!');
+      if (!authClient) throw new Error('Klien belum diinisialisasi!');
 
       await authClient.login({
         identityProvider:
           process.env.NEXT_PUBLIC_DFX_NETWORK === 'ic'
             ? 'https://identity.ic0.app/#authorize'
             : `${process.env.NEXT_PUBLIC_IC_HOST}?canisterId=${process.env.NEXT_PUBLIC_CANISTER_ID_INTERNET_IDENTITY}#authorize`,
-        maxTimeToLive: BigInt(12) * BigInt(3_600_000_000_000),
+        maxTimeToLive: BigInt(12) * BigInt(3_600_000_000_000_000),
         onSuccess: async () => await initClient(authClient),
       });
     } catch (err) {
@@ -115,9 +115,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
 
-      if (!authClient) throw new Error('AuthClient belum diinisialisasi!');
+      if (!authClient) throw new Error('Klien belum diinisialisasi!');
 
       await authClient.logout();
+      await initClient(authClient);
+    } catch (err) {
+      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const refresh = async () => {
+    try {
+      setIsLoading(true);
+
+      if (!authClient) throw new Error('Klien belum diinisialisasi!');
+
       await initClient(authClient);
     } catch (err) {
       throw new Error('Terjadi kesalahan, silakan coba lagi!');
@@ -144,6 +158,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signIn,
         signOut,
+        refresh,
       }}
     >
       {children}

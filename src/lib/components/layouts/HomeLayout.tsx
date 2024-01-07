@@ -20,7 +20,7 @@ const HomeLayout = ({ children }: { children: React.ReactNode }) => {
   if (isInitializing || isAuthenticated) return null;
 
   return (
-    <Box minHeight="100vh" backgroundColor="white">
+    <Box minHeight="100vh" backgroundColor="blue.50">
       <Navbar />
       <Container as="main" maxWidth="full" position="relative" top={85} padding={0}>
         {children}

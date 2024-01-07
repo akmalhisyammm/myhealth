@@ -76,7 +76,7 @@ const Navbar = ({ isLoggedIn }: NavbarProps) => {
         as="nav"
         height="full"
         maxWidth={isLoggedIn ? 'full' : 'container.xl'}
-        paddingX={isLoggedIn ? [4, 4, 8] : 0}
+        paddingX={[4, 4, 8]}
         paddingY={2}
         centerContent
       >

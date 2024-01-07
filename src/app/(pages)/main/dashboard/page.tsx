@@ -1,27 +1,29 @@
 'use client';
 
 import { useContext } from 'react';
-import { Box, Heading, Text } from '@chakra-ui/react';
 
+// import { APP_NAME, APP_URL } from '@/lib/constants/meta';
 import { MainLayout } from '@/lib/components/layouts';
 import { AuthContext } from '@/lib/contexts/auth';
-import { greetingMessage } from '@/lib/utils/greeting';
+import { DoctorSchedules } from '@/lib/components/organisms';
+
+// import type { Metadata } from 'next';
+
+// export const metadata: Metadata = {
+//   title: 'Dashboard',
+//   alternates: {
+//     canonical: '/main/dashboard',
+//   },
+//   openGraph: {
+//     title: `Dashboard | ${APP_NAME}`,
+//     url: `${APP_URL}/main/dashboard`,
+//   },
+// };
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
-  return (
-    <MainLayout>
-      <Heading as="h3" size="lg" color="brand.500" marginBottom={4}>
-        Dashboard
-      </Heading>
-      <Box>
-        <Text>{greetingMessage(user?.name || '')}</Text>
-        <Text>You are a {user?.role}.</Text>
-        <Text>You are {user?.isVerified ? 'verified' : 'not verified'}.</Text>
-      </Box>
-    </MainLayout>
-  );
+  return <MainLayout>{user?.role === 'doctor' && <DoctorSchedules />}</MainLayout>;
 };
 
 export default Dashboard;
