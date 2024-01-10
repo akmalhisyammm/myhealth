@@ -9,8 +9,8 @@ fi
 
 ENV=$1
 
-if [[ $ENV == "local" ]]; then
-    rm -rf .dfx
-    rm -rf .azle
-    rm -rf src/declarations
-fi
+rm -rf .dfx
+rm -rf .azle
+rm -rf src/declarations
+
+echo "Cleaned up local deployment."
