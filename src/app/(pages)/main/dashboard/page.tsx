@@ -6,6 +6,8 @@ import { useContext } from 'react';
 import { MainLayout } from '@/lib/components/layouts';
 import { AuthContext } from '@/lib/contexts/auth';
 import { DoctorSchedules } from '@/lib/components/organisms';
+import AdminstrationDashboard from '@/lib/components/organisms/AdminstrationDashboard';
+
 
 // import type { Metadata } from 'next';
 
@@ -23,7 +25,9 @@ import { DoctorSchedules } from '@/lib/components/organisms';
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
 
-  return <MainLayout>{user?.role === 'doctor' && <DoctorSchedules />}</MainLayout>;
+  return <MainLayout>
+    {user?.role === 'doctor' && <DoctorSchedules />}
+    {user?.role === 'admin' && <AdminstrationDashboard />}</MainLayout>;
 };
 
 export default Dashboard;

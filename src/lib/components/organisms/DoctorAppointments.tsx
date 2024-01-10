@@ -156,7 +156,7 @@ const DoctorAppointments = () => {
                 <AccordionPanel paddingBottom={4}>
                   <TableContainer>
                     <Table variant="simple">
-                      <Thead backgroundColor="brand.50">
+                      <Thead backgroundColor="brand.100">
                         <Tr>
                           <Th>Tanggal & Waktu</Th>
                           <Th>Status</Th>
