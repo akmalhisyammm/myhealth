@@ -199,7 +199,7 @@ const DoctorAppointments = () => {
                 <AccordionPanel paddingBottom={4}>
                   <TableContainer>
                     <Table variant="simple">
-                      <Thead backgroundColor="brand.50">
+                      <Thead backgroundColor="brand.100">
                         <Tr>
                           <Th>Tanggal & Waktu</Th>
                           <Th>Status</Th>
@@ -290,10 +290,10 @@ const DoctorAppointments = () => {
               <strong>Tanggal & Waktu:</strong>{' '}
               {appointmentDetail?.startTime
                 ? `${dayjs(nat64ToDate(appointmentDetail.startTime)).format(
-                    'DD/MM/YYYY'
-                  )} @ ${dayjs(nat64ToDate(appointmentDetail.startTime)).format('HH:mm')}-${dayjs(
-                    nat64ToDate(appointmentDetail.endTime)
-                  ).format('HH:mm')}`
+                  'DD/MM/YYYY'
+                )} @ ${dayjs(nat64ToDate(appointmentDetail.startTime)).format('HH:mm')}-${dayjs(
+                  nat64ToDate(appointmentDetail.endTime)
+                ).format('HH:mm')}`
                 : ''}
             </Text>
             <Text>
