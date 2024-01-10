@@ -1,15 +1,25 @@
 'use client';
 
-import { useContext, useEffect, useState } from 'react';
-import { FaInfo } from 'react-icons/fa';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { FaCheck, FaInfo, FaTimes } from 'react-icons/fa';
 import {
   Accordion,
   AccordionButton,
   AccordionIcon,
   AccordionItem,
   AccordionPanel,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  AlertDialogCloseButton,
+  Badge,
   Box,
   Button,
+  Heading,
+  IconButton,
   Modal,
   ModalBody,
   ModalContent,
@@ -18,19 +28,16 @@ import {
   ModalOverlay,
   TableContainer,
   Table,
-  Thead,
   Tbody,
-  Tr,
-  Th,
   Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
   VStack,
   useDisclosure,
-  IconButton,
-  Heading,
-  Text,
   useToast,
 } from '@chakra-ui/react';
-import { Principal } from '@dfinity/principal';
 import dayjs from 'dayjs';
 
 import { AuthContext } from '@/lib/contexts/auth';
@@ -41,105 +48,54 @@ import type { Appointment, Error, User } from '@/contract';
 
 const DoctorAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [patientDetail, setPatientDetail] = useState<User | null>(null);
   const [appointmentDetail, setAppointmentDetail] = useState<Appointment | null>(null);
+  const [patientDetail, setPatientDetail] = useState<User | null>(null);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
 
   const { actor } = useContext(AuthContext);
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
+  const cancelRef = useRef(null);
+  const detailModal = useDisclosure();
+  const confirmDialog = useDisclosure();
+  const rejectDialog = useDisclosure();
   const toast = useToast();
 
-  const onOpenDetail = async (appointment: Appointment) => {
-    if (!actor) return;
+  const onReviewAppointment = async (isConfirmed: boolean) => {
+    if (!actor || !appointmentDetail) return;
 
-    const patient: Result<any, Error> = await actor.getUser(
-      Principal.fromText(appointment.patientId.toText())
+    isConfirmed ? setIsConfirming(true) : setIsRejecting(true);
+
+    const result: Result<any, Error> = await actor.reviewAppointment(
+      appointmentDetail.id,
+      isConfirmed
     );
 
-    setPatientDetail(patient.Ok || null);
-    setAppointmentDetail(appointment);
-    onOpen();
-  };
+    if (result.Ok) {
+      const updatedAppointments: Result<any, Error> = await actor.getUpcomingCallerAppointments();
+      setAppointments(updatedAppointments.Ok || appointments);
+      toast({
+        title: isConfirmed ? 'Berhasil mengonfirmasi janji!' : 'Berhasil menolak janji!',
+        description: isConfirmed ? 'Janji temu telah dikonfirmasi.' : 'Janji temu telah ditolak.',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } else if (result.Err) {
+      toast({
+        title: isConfirmed ? 'Gagal mengonfirmasi janji!' : 'Gagal menolak janji!',
+        description: Object.values(result.Err)[0],
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
 
-  const onCloseDetail = () => {
-    setPatientDetail(null);
     setAppointmentDetail(null);
-    onClose();
-  };
-
-  const onConfirmAppointment = async () => {
-    if (!actor || !appointmentDetail) return;
-
-    setIsConfirming(true);
-
-    const result: Result<any, Error> = await actor.reviewAppointment(appointmentDetail.id, true);
-
-    if (!result.Ok) {
-      setIsConfirming(false);
-      return toast({
-        title: 'Gagal mengonfirmasi janji!',
-        description: 'Terjadi kesalahan, silakan coba lagi.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-
-    toast({
-      title: 'Berhasil mengonfirmasi janji!',
-      description: 'Janji temu telah dikonfirmasi.',
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    });
-
-    const updatedAppointments = appointments.map((appointment) => {
-      if (appointment.id === result.Ok.id) {
-        return { ...appointment, isApproved: true };
-      }
-      return appointment;
-    });
-
-    setAppointments(updatedAppointments);
     setIsConfirming(false);
-    onCloseDetail();
-  };
-
-  const onRejectAppointment = async () => {
-    if (!actor || !appointmentDetail) return;
-
-    setIsRejecting(true);
-
-    const result: Result<any, Error> = await actor.reviewAppointment(appointmentDetail.id, false);
-
-    if (!result.Ok) {
-      setIsRejecting(false);
-      return toast({
-        title: 'Gagal menolak janji!',
-        description: 'Terjadi kesalahan, silakan coba lagi.',
-        status: 'error',
-        duration: 5000,
-        isClosable: true,
-      });
-    }
-
-    toast({
-      title: 'Berhasil menolak janji!',
-      description: 'Janji temu telah ditolak.',
-      status: 'success',
-      duration: 5000,
-      isClosable: true,
-    });
-
-    const updatedAppointments = appointments.filter(
-      (appointment) => appointment.id !== result.Ok.id
-    );
-
-    setAppointments(updatedAppointments);
     setIsRejecting(false);
-    onCloseDetail();
+    confirmDialog.onClose();
+    rejectDialog.onClose();
   };
 
   useEffect(() => {
@@ -163,12 +119,10 @@ const DoctorAppointments = () => {
       <Heading as="h3" size="lg" color="brand.500">
         Janji Temu
       </Heading>
+
       {appointments.length ? (
         <Accordion width="full" defaultIndex={[0]} allowMultiple>
           {appointments
-            .sort((a, b) =>
-              dayjs(nat64ToDate(a.startTime)).isAfter(dayjs(nat64ToDate(b.startTime))) ? 1 : -1
-            )
             .filter(
               (appointment, index, self) =>
                 index ===
@@ -177,6 +131,9 @@ const DoctorAppointments = () => {
                     dayjs(nat64ToDate(t.startTime)).format('DD/MM/YYYY') ===
                     dayjs(nat64ToDate(appointment.startTime)).format('DD/MM/YYYY')
                 )
+            )
+            .sort((a, b) =>
+              dayjs(nat64ToDate(a.startTime)).isAfter(dayjs(nat64ToDate(b.startTime))) ? 1 : -1
             )
             .map((appointment) => (
               <AccordionItem key={appointment.id}>
@@ -213,6 +170,7 @@ const DoctorAppointments = () => {
                               dayjs(nat64ToDate(t.startTime)).format('DD/MM/YYYY') ===
                               dayjs(nat64ToDate(appointment.startTime)).format('DD/MM/YYYY')
                           )
+                          .sort((a, b) => Number(a.startTime - b.startTime))
                           .map((appointment) => (
                             <Tr key={appointment.id}>
                               <Td>
@@ -223,14 +181,44 @@ const DoctorAppointments = () => {
                                 )}-${dayjs(nat64ToDate(appointment.endTime)).format('HH:mm')}`}
                               </Td>
                               <Td>
-                                {appointment.isApproved ? 'Terkonfirmasi' : 'Menunggu konfirmasi'}
+                                {appointment.isConfirmed ? (
+                                  <Badge colorScheme="green">Telah dikonfirmasi</Badge>
+                                ) : (
+                                  <Badge colorScheme="yellow">Menunggu konfirmasi</Badge>
+                                )}
                               </Td>
-                              <Td>
+                              <Td display="flex" gap={2}>
+                                {!appointment.isConfirmed && (
+                                  <>
+                                    <IconButton
+                                      aria-label="Konfirmasi"
+                                      colorScheme="green"
+                                      icon={<FaCheck />}
+                                      onClick={() => {
+                                        setAppointmentDetail(appointment);
+                                        confirmDialog.onOpen();
+                                      }}
+                                    />
+                                    <IconButton
+                                      aria-label="Tolak"
+                                      colorScheme="red"
+                                      icon={<FaTimes />}
+                                      onClick={() => {
+                                        setAppointmentDetail(appointment);
+                                        rejectDialog.onOpen();
+                                      }}
+                                    />
+                                  </>
+                                )}
                                 <IconButton
                                   aria-label="Detail"
                                   colorScheme="brand"
                                   icon={<FaInfo />}
-                                  onClick={() => onOpenDetail(appointment)}
+                                  onClick={() => {
+                                    setAppointmentDetail(appointment);
+                                    setPatientDetail(appointment.patient);
+                                    detailModal.onOpen();
+                                  }}
                                 />
                               </Td>
                             </Tr>
@@ -243,21 +231,100 @@ const DoctorAppointments = () => {
             ))}
         </Accordion>
       ) : (
-        <Text>Tidak ada janji temu.</Text>
+        <Text>Tidak ada janji temu yang akan datang.</Text>
       )}
+
+      <AlertDialog
+        motionPreset="slideInBottom"
+        leastDestructiveRef={cancelRef}
+        closeOnOverlayClick={false}
+        isOpen={confirmDialog.isOpen}
+        onClose={confirmDialog.onClose}
+        isCentered
+      >
+        <AlertDialogOverlay />
+        <AlertDialogContent>
+          <AlertDialogHeader>Konfirmasi Janji Temu</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody>Apakah Anda yakin ingin mengonfirmasi janji ini?</AlertDialogBody>
+          <AlertDialogFooter>
+            <Button
+              ref={cancelRef}
+              colorScheme="brand"
+              variant="outline"
+              marginRight={2}
+              isDisabled={isConfirming}
+              onClick={() => {
+                setAppointmentDetail(null);
+                confirmDialog.onClose();
+              }}
+            >
+              Batal
+            </Button>
+            <Button
+              colorScheme="green"
+              loadingText="Mengonfirmasi"
+              isLoading={isConfirming}
+              onClick={() => onReviewAppointment(true)}
+            >
+              Konfirmasi
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        motionPreset="slideInBottom"
+        leastDestructiveRef={cancelRef}
+        closeOnOverlayClick={false}
+        isOpen={rejectDialog.isOpen}
+        onClose={rejectDialog.onClose}
+        isCentered
+      >
+        <AlertDialogOverlay />
+        <AlertDialogContent>
+          <AlertDialogHeader>Tolak Janji Temu</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody>Apakah Anda yakin ingin menolak janji ini?</AlertDialogBody>
+          <AlertDialogFooter>
+            <Button
+              ref={cancelRef}
+              colorScheme="brand"
+              variant="outline"
+              marginRight={2}
+              isDisabled={isRejecting}
+              onClick={() => {
+                setAppointmentDetail(null);
+                rejectDialog.onClose();
+              }}
+            >
+              Batal
+            </Button>
+            <Button
+              colorScheme="red"
+              loadingText="Menolak"
+              isLoading={isRejecting}
+              onClick={() => onReviewAppointment(false)}
+            >
+              Tolak
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Modal
         scrollBehavior="inside"
+        size="xl"
         closeOnOverlayClick={false}
-        isOpen={isOpen}
-        onClose={onCloseDetail}
+        isOpen={detailModal.isOpen}
+        onClose={detailModal.onClose}
         isCentered
       >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader borderBottomWidth={2}>Detail Janji Temu</ModalHeader>
           <ModalBody display="flex" flexDirection="column" padding={6} gap={4}>
-            <Heading as="h4" size="md">
+            <Heading as="h4" size="md" color="brand.500">
               Informasi Pasien
             </Heading>
             <Text>
@@ -283,17 +350,22 @@ const DoctorAppointments = () => {
             <Text>
               <strong>Email:</strong> {patientDetail?.email}
             </Text>
-            <Heading as="h4" size="md" marginTop={4}>
+            <Heading as="h4" size="md" color="brand.500" marginTop={4}>
               Informasi Janji Temu
             </Heading>
             <Text>
+              <strong>Rumah Sakit:</strong> {appointmentDetail?.hospital.name}
+            </Text>
+            <Text>
               <strong>Tanggal & Waktu:</strong>{' '}
               {appointmentDetail?.startTime
-                ? `${dayjs(nat64ToDate(appointmentDetail.startTime)).format(
-                    'DD/MM/YYYY'
-                  )} @ ${dayjs(nat64ToDate(appointmentDetail.startTime)).format('HH:mm')}-${dayjs(
-                    nat64ToDate(appointmentDetail.endTime)
-                  ).format('HH:mm')}`
+                ? `${dayjs(nat64ToDate(appointmentDetail?.startTime))
+                    .locale('id')
+                    .format('D MMMM YYYY')} @ ${dayjs(
+                    nat64ToDate(appointmentDetail?.startTime)
+                  ).format('HH:mm')}-${dayjs(nat64ToDate(appointmentDetail?.endTime)).format(
+                    'HH:mm'
+                  )}`
                 : ''}
             </Text>
             <Text>
@@ -301,38 +373,22 @@ const DoctorAppointments = () => {
             </Text>
             <Text>
               <strong>Status:</strong>{' '}
-              {appointmentDetail?.isApproved ? 'Terkonfirmasi' : 'Menunggu konfirmasi'}
+              {appointmentDetail?.isConfirmed ? 'Telah dikonfirmasi' : 'Menunggu konfirmasi'}
             </Text>
           </ModalBody>
-          {appointmentDetail?.isApproved ? (
-            <ModalFooter borderTopWidth={2}>
-              <Button colorScheme="brand" variant="outline" onClick={onCloseDetail}>
-                Tutup
-              </Button>
-            </ModalFooter>
-          ) : (
-            <ModalFooter borderTopWidth={2}>
-              <Button
-                colorScheme="brand"
-                loadingText="Mengonfirmasi"
-                isLoading={isConfirming}
-                isDisabled={isConfirming || isRejecting}
-                marginRight={2}
-                onClick={onConfirmAppointment}
-              >
-                Konfirmasi
-              </Button>
-              <Button
-                colorScheme="red"
-                loadingText="Menolak"
-                isLoading={isRejecting}
-                isDisabled={isConfirming || isRejecting}
-                onClick={onRejectAppointment}
-              >
-                Tolak
-              </Button>
-            </ModalFooter>
-          )}
+          <ModalFooter borderTopWidth={2}>
+            <Button
+              colorScheme="brand"
+              variant="outline"
+              onClick={() => {
+                setAppointmentDetail(null);
+                setPatientDetail(null);
+                detailModal.onClose();
+              }}
+            >
+              Tutup
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </VStack>

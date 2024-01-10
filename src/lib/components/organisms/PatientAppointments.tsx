@@ -11,6 +11,7 @@ import {
   AlertDialogContent,
   AlertDialogOverlay,
   AlertDialogCloseButton,
+  Badge,
   Button,
   FormControl,
   FormErrorMessage,
@@ -28,6 +29,7 @@ import {
   TableContainer,
   Tbody,
   Td,
+  Text,
   Textarea,
   Th,
   Thead,
@@ -35,12 +37,13 @@ import {
   VStack,
   useDisclosure,
   useToast,
-  Text,
+  Alert,
+  AlertIcon,
 } from '@chakra-ui/react';
 import { Principal } from '@dfinity/principal';
 import { yupResolver } from '@hookform/resolvers/yup';
-import Select from 'react-select';
 import DatePicker from 'react-datepicker';
+import Select from 'react-select';
 import dayjs from 'dayjs';
 
 import { SPECIALIZATION_OPTIONS } from '@/lib/constants/options';
@@ -56,6 +59,7 @@ const PatientAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [doctors, setDoctors] = useState<User[]>([]);
+  const [doctorAppointments, setDoctorAppointments] = useState<Appointment[]>([]);
   const [appointmentDetail, setAppointmentDetail] = useState<Appointment | null>(null);
   const [hospitalDetail, setHospitalDetail] = useState<Hospital | null>(null);
   const [doctorDetail, setDoctorDetail] = useState<User | null>(null);
@@ -80,104 +84,113 @@ const PatientAppointments = () => {
     resolver: yupResolver(appointmentSchema),
   });
 
+  const doctor = useWatch({ control, name: 'doctorId' });
+  const hospital = useWatch({ control, name: 'hospitalId' });
+  const specialization = useWatch({ control, name: 'specialization' });
+  const cancelRef = useRef(null);
   const createModal = useDisclosure();
   const detailModal = useDisclosure();
   const deleteDialog = useDisclosure();
   const toast = useToast();
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  const hospital = useWatch({ control, name: 'hospitalId' });
-  const specialization = useWatch({ control, name: 'specialization' });
-  const doctor = useWatch({ control, name: 'doctorId' });
 
   const onCreateAppointment = async (payload: InferType<typeof appointmentSchema>) => {
     if (!actor) return;
 
-    try {
-      await actor.createAppointment({
-        ...payload,
-        doctorId: Principal.fromText(payload.doctorId),
-        startTime: dateToNat64(payload.startTime),
-      });
-      const appointments: Result<any, Error> = await actor.getUpcomingCallerAppointments();
-      setAppointments(appointments.Ok || []);
-      reset();
-      createModal.onClose();
+    const result: Result<any, Error> = await actor.createAppointment({
+      ...payload,
+      doctorId: Principal.fromText(payload.doctorId),
+      startTime: dateToNat64(payload.startTime),
+    });
+
+    if (result.Ok) {
+      const updatedAppointments: Result<any, Error> = await actor.getUpcomingCallerAppointments();
+      setAppointments(updatedAppointments.Ok || appointments);
       toast({
         title: 'Berhasil membuat janji!',
         description: 'Silakan tunggu konfirmasi dari dokter.',
         status: 'success',
         isClosable: true,
       });
-    } catch (err) {
-      console.log(err);
+    }
+    if (result.Err) {
       toast({
         title: 'Gagal membuat janji!',
-        description: 'Silakan coba lagi.',
+        description: Object.values(result.Err)[0],
         status: 'error',
         isClosable: true,
       });
     }
+
+    reset();
+    createModal.onClose();
   };
 
   const onDeleteAppointment = async () => {
     if (!actor || !appointmentDetail) return;
 
-    try {
-      setIsDeleting(true);
+    setIsDeleting(true);
 
-      await actor.deleteAppointment(appointmentDetail.id);
-      const appointments: Result<any, Error> = await actor.getUpcomingCallerAppointments();
+    const result: Result<any, Error> = await actor.deleteAppointment(appointmentDetail.id);
 
-      setAppointments(appointments.Ok || []);
-      onCloseDeleteDialog();
+    if (result.Ok) {
+      const updatedAppointments: Result<any, Error> = await actor.getUpcomingCallerAppointments();
+      setAppointments(updatedAppointments.Ok || appointments);
       toast({
         title: 'Berhasil menghapus janji!',
         description: 'Anda telah menghapus janji temu.',
         status: 'success',
         isClosable: true,
       });
-    } catch (err) {
-      console.log(err);
+    } else if (result.Err) {
       toast({
         title: 'Gagal menghapus janji!',
-        description: 'Silakan coba lagi.',
+        description: Object.values(result.Err)[0],
         status: 'error',
         isClosable: true,
       });
-    } finally {
-      setIsDeleting(false);
     }
+    setAppointmentDetail(null);
+    setIsDeleting(false);
+    deleteDialog.onClose();
   };
 
-  const onOpenDetailModal = async (appointment: Appointment) => {
-    if (!actor) return;
+  const filterAppointmentDate = (date: Date) => {
+    const currentDay = date.getDay();
+    const doctorSchedule = doctors.find((user) => user.id.toText() === doctor)?.schedules[
+      currentDay
+    ];
 
-    const hospital: Result<any, Error> = await actor.getHospital(appointment.hospitalId);
-    const doctor: Result<any, Error> = await actor.getUser(
-      Principal.fromText(appointment.doctorId.toText())
+    if (!doctorSchedule) return false;
+
+    return doctorSchedule.isActive;
+  };
+
+  const filterAppointmentTime = (time: Date) => {
+    const currentDay = time.getDay();
+    const currentHours = time.getHours();
+    const currentMinutes = time.getMinutes();
+    const doctorSchedule = doctors.find((user) => user.id.toText() === doctor)?.schedules[
+      currentDay
+    ];
+    const doctorAppointment = doctorAppointments.find(
+      (appointment) =>
+        dayjs(nat64ToDate(appointment.startTime)).format('DD/MM/YYYY HH:mm') ===
+        dayjs(time).format('DD/MM/YYYY HH:mm')
     );
 
-    setAppointmentDetail(appointment);
-    setHospitalDetail(hospital.Ok || null);
-    setDoctorDetail(doctor.Ok || null);
-    detailModal.onOpen();
-  };
+    if (!doctorSchedule?.isActive) return false;
+    if (doctorAppointment?.isConfirmed) return false;
 
-  const onCloseDetailModal = () => {
-    setAppointmentDetail(null);
-    setHospitalDetail(null);
-    setDoctorDetail(null);
-    detailModal.onClose();
-  };
+    const startHours = +doctorSchedule.startTime.split(':')[0];
+    const startMinutes = +doctorSchedule.startTime.split(':')[1];
+    const endHours = +doctorSchedule.endTime.split(':')[0];
+    const endMinutes = +doctorSchedule.endTime.split(':')[1];
 
-  const onOpenDeleteDialog = (appointment: Appointment) => {
-    setAppointmentDetail(appointment);
-    deleteDialog.onOpen();
-  };
+    if (currentHours < startHours || currentHours > endHours) return false;
+    if (currentHours === startHours && currentMinutes < startMinutes) return false;
+    if (currentHours === endHours && currentMinutes > endMinutes - 30) return false;
 
-  const onCloseDeleteDialog = () => {
-    setAppointmentDetail(null);
-    deleteDialog.onClose();
+    return true;
   };
 
   useEffect(() => {
@@ -194,6 +207,13 @@ const PatientAppointments = () => {
       .getDoctorsByHospitalAndSpecialization(hospital, specialization)
       .then((res: Result<any, Error>) => setDoctors(res.Ok || []));
   }, [actor, hospital, specialization]);
+
+  useEffect(() => {
+    if (!actor || !doctor) return;
+    actor
+      .getUpcomingDoctorAppointments(Principal.fromText(doctor))
+      .then((res: Result<any, Error>) => setDoctorAppointments(res.Ok || []));
+  }, [actor, doctor]);
 
   return (
     <>
@@ -224,7 +244,7 @@ const PatientAppointments = () => {
           <Table variant="simple">
             <Thead backgroundColor="brand.50">
               <Tr>
-                <Th>Spesialisasi</Th>
+                <Th>Rumah Sakit</Th>
                 <Th>Tanggal & Waktu</Th>
                 <Th>Status</Th>
                 <Th>Aksi</Th>
@@ -232,41 +252,55 @@ const PatientAppointments = () => {
             </Thead>
             <Tbody>
               {appointments.length ? (
-                appointments.map((appointment) => (
-                  <Tr key={appointment.id}>
-                    <Td>{appointment.specialization}</Td>
-                    <Td>
-                      {`${dayjs(nat64ToDate(appointment.startTime)).format('DD/MM/YYYY')} @ ${dayjs(
-                        nat64ToDate(appointment.startTime)
-                      ).format('HH:mm')}-${dayjs(nat64ToDate(appointment.endTime)).format(
-                        'HH:mm'
-                      )}`}
-                    </Td>
-                    <Td>{appointment.isApproved ? 'Terkonfirmasi' : 'Menunggu konfirmasi'}</Td>
-                    <Td>
-                      <HStack>
+                appointments
+                  .sort((a, b) => Number(a.startTime - b.startTime))
+                  .map((appointment) => (
+                    <Tr key={appointment.id}>
+                      <Td>{appointment.hospital.name}</Td>
+                      <Td>
+                        {`${dayjs(nat64ToDate(appointment.startTime)).format(
+                          'DD/MM/YYYY'
+                        )} @ ${dayjs(nat64ToDate(appointment.startTime)).format('HH:mm')}-${dayjs(
+                          nat64ToDate(appointment.endTime)
+                        ).format('HH:mm')}`}
+                      </Td>
+                      <Td>
+                        {appointment.isConfirmed ? (
+                          <Badge colorScheme="green">Telah dikonfirmasi</Badge>
+                        ) : (
+                          <Badge colorScheme="yellow">Menunggu konfirmasi</Badge>
+                        )}
+                      </Td>
+                      <Td display="flex" gap={2}>
                         <IconButton
                           aria-label="Appointment detail"
                           colorScheme="brand"
                           icon={<FaInfo />}
-                          onClick={() => onOpenDetailModal(appointment)}
+                          onClick={() => {
+                            setAppointmentDetail(appointment);
+                            setHospitalDetail(appointment.hospital);
+                            setDoctorDetail(appointment.doctor);
+                            detailModal.onOpen();
+                          }}
                         />
-                        {!appointment.isApproved && (
+                        {!appointment.isConfirmed && (
                           <IconButton
                             aria-label="Delete appointment"
                             colorScheme="red"
                             icon={<FaTrash />}
-                            onClick={() => onOpenDeleteDialog(appointment)}
+                            onClick={() => {
+                              setAppointmentDetail(appointment);
+                              deleteDialog.onOpen();
+                            }}
                           />
                         )}
-                      </HStack>
-                    </Td>
-                  </Tr>
-                ))
+                      </Td>
+                    </Tr>
+                  ))
               ) : (
                 <Tr>
                   <Td colSpan={4} textAlign="center">
-                    Tidak ada janji temu
+                    Tidak ada janji temu yang akan datang.
                   </Td>
                 </Tr>
               )}
@@ -277,6 +311,7 @@ const PatientAppointments = () => {
 
       <Modal
         scrollBehavior="inside"
+        size="xl"
         closeOnOverlayClick={false}
         isOpen={createModal.isOpen}
         onClose={createModal.onClose}
@@ -380,36 +415,8 @@ const PatientAppointments = () => {
                     selected={value}
                     readOnly={!doctor}
                     disabled={!doctor}
-                    filterDate={(date) => {
-                      const currentDay = date.getDay();
-                      const doctorSchedules = (
-                        doctors.find((user) => user.id.toText() === doctor)?.schedules as any
-                      )?.[0];
-                      return doctorSchedules ? doctorSchedules[currentDay].isActive : false;
-                    }}
-                    filterTime={(time) => {
-                      const currentDay = time.getDay();
-                      const currentHours = time.getHours();
-                      const currentMinutes = time.getMinutes();
-                      const doctorSchedules = (
-                        doctors.find((user) => user.id.toText() === doctor)?.schedules as any
-                      )?.[0];
-
-                      if (!doctorSchedules[currentDay].isActive) return false;
-
-                      const startHours = +doctorSchedules[currentDay].startTime.split(':')[0];
-                      const startMinutes = +doctorSchedules[currentDay].startTime.split(':')[1];
-                      const endHours = +doctorSchedules[currentDay].endTime.split(':')[0];
-                      const endMinutes = +doctorSchedules[currentDay].endTime.split(':')[1];
-
-                      if (currentHours < startHours || currentHours > endHours) return false;
-                      if (currentHours === startHours && currentMinutes < startMinutes)
-                        return false;
-                      if (currentHours === endHours && currentMinutes > endMinutes - 30)
-                        return false;
-
-                      return true;
-                    }}
+                    filterDate={(date) => filterAppointmentDate(date)}
+                    filterTime={(time) => filterAppointmentTime(time)}
                     onChange={onChange}
                     {...rest}
                   />
@@ -451,20 +458,27 @@ const PatientAppointments = () => {
 
       <Modal
         scrollBehavior="inside"
+        size="lg"
         closeOnOverlayClick={false}
         isOpen={detailModal.isOpen}
-        onClose={onCloseDetailModal}
+        onClose={detailModal.onClose}
         isCentered
       >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader borderBottomWidth={2}>Detail Janji Temu</ModalHeader>
           <ModalBody display="flex" flexDirection="column" padding={6} gap={4}>
+            {appointmentDetail?.isConfirmed && (
+              <Alert status="warning" variant="left-accent">
+                <AlertIcon />
+                Mohon untuk datang 15 menit sebelum jadwal mulai.
+              </Alert>
+            )}
             <Text>
               <strong>Rumah Sakit:</strong> {hospitalDetail?.name}
             </Text>
             <Text>
-              <strong>Dokter:</strong> {doctorDetail?.name}
+              <strong>Nama Dokter:</strong> {doctorDetail?.name}
             </Text>
             <Text>
               <strong>Spesialisasi:</strong> {doctorDetail?.specialization as any}
@@ -472,11 +486,13 @@ const PatientAppointments = () => {
             <Text>
               <strong>Tanggal & Waktu:</strong>{' '}
               {appointmentDetail?.startTime
-                ? `${dayjs(nat64ToDate(appointmentDetail.startTime)).format(
-                    'DD/MM/YYYY'
-                  )} @ ${dayjs(nat64ToDate(appointmentDetail.startTime)).format('HH:mm')}-${dayjs(
-                    nat64ToDate(appointmentDetail.endTime)
-                  ).format('HH:mm')}`
+                ? `${dayjs(nat64ToDate(appointmentDetail?.startTime))
+                    .locale('id')
+                    .format('D MMMM YYYY')} @ ${dayjs(
+                    nat64ToDate(appointmentDetail?.startTime)
+                  ).format('HH:mm')}-${dayjs(nat64ToDate(appointmentDetail?.endTime)).format(
+                    'HH:mm'
+                  )}`
                 : ''}
             </Text>
             <Text>
@@ -484,7 +500,7 @@ const PatientAppointments = () => {
             </Text>
             <Text>
               <strong>Status:</strong>{' '}
-              {appointmentDetail?.isApproved ? 'Terkonfirmasi' : 'Menunggu konfirmasi'}
+              {appointmentDetail?.isConfirmed ? 'Telah dikonfirmasi' : 'Menunggu konfirmasi'}
             </Text>
           </ModalBody>
           <ModalFooter borderTopWidth={2}>
@@ -492,7 +508,12 @@ const PatientAppointments = () => {
               type="button"
               colorScheme="brand"
               variant="outline"
-              onClick={onCloseDetailModal}
+              onClick={() => {
+                setAppointmentDetail(null);
+                setHospitalDetail(null);
+                setDoctorDetail(null);
+                detailModal.onClose();
+              }}
             >
               Tutup
             </Button>
@@ -505,7 +526,7 @@ const PatientAppointments = () => {
         leastDestructiveRef={cancelRef}
         closeOnOverlayClick={false}
         isOpen={deleteDialog.isOpen}
-        onClose={onCloseDeleteDialog}
+        onClose={deleteDialog.onClose}
         isCentered
       >
         <AlertDialogOverlay />
@@ -520,7 +541,10 @@ const PatientAppointments = () => {
               variant="outline"
               marginRight={2}
               isDisabled={isDeleting}
-              onClick={onCloseDeleteDialog}
+              onClick={() => {
+                setAppointmentDetail(null);
+                deleteDialog.onClose();
+              }}
             >
               Batal
             </Button>

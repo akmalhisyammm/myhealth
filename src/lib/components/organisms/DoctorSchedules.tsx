@@ -4,6 +4,7 @@ import { useContext } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { FaEdit } from 'react-icons/fa';
 import {
+  Badge,
   Button,
   Checkbox,
   FormControl,
@@ -50,39 +51,39 @@ const DoctorSchedules = () => {
     defaultValues: {
       schedules: [
         {
-          startTime: (user?.schedules as any)?.[0]?.[0]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[0]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[0]?.isActive || false,
+          startTime: user?.schedules[0].startTime || '',
+          endTime: user?.schedules[0].endTime || '',
+          isActive: user?.schedules[0].isActive || false,
         },
         {
-          startTime: (user?.schedules as any)?.[0]?.[1]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[1]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[1]?.isActive || false,
+          startTime: user?.schedules[1].startTime || '',
+          endTime: user?.schedules[1].endTime || '',
+          isActive: user?.schedules[1].isActive || false,
         },
         {
-          startTime: (user?.schedules as any)?.[0]?.[2]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[2]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[2]?.isActive || false,
+          startTime: user?.schedules[2].startTime || '',
+          endTime: user?.schedules[2].endTime || '',
+          isActive: user?.schedules[2].isActive || false,
         },
         {
-          startTime: (user?.schedules as any)?.[0]?.[3]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[3]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[3]?.isActive || false,
+          startTime: user?.schedules[3].startTime || '',
+          endTime: user?.schedules[3].endTime || '',
+          isActive: user?.schedules[3].isActive || false,
         },
         {
-          startTime: (user?.schedules as any)?.[0]?.[4]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[4]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[4]?.isActive || false,
+          startTime: user?.schedules[4].startTime || '',
+          endTime: user?.schedules[4].endTime || '',
+          isActive: user?.schedules[4].isActive || false,
         },
         {
-          startTime: (user?.schedules as any)?.[0]?.[5]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[5]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[5]?.isActive || false,
+          startTime: user?.schedules[5].startTime || '',
+          endTime: user?.schedules[5].endTime || '',
+          isActive: user?.schedules[5].isActive || false,
         },
         {
-          startTime: (user?.schedules as any)?.[0]?.[6]?.startTime || '',
-          endTime: (user?.schedules as any)?.[0]?.[6]?.endTime || '',
-          isActive: (user?.schedules as any)?.[0]?.[6]?.isActive || false,
+          startTime: user?.schedules[6].startTime || '',
+          endTime: user?.schedules[6].endTime || '',
+          isActive: user?.schedules[6].isActive || false,
         },
       ],
     },
@@ -96,13 +97,13 @@ const DoctorSchedules = () => {
     if (!actor) return;
 
     try {
-      await actor.updateSchedules({
-        schedules: payload.schedules.map((schedule) => ({
+      await actor.updateCallerSchedules(
+        payload.schedules.map((schedule) => ({
           ...schedule,
           startTime: schedule.startTime || '',
           endTime: schedule.endTime || '',
-        })),
-      });
+        }))
+      );
       await refresh();
       toast({
         title: 'Berhasil memperbarui jadwal praktek!',
@@ -112,13 +113,15 @@ const DoctorSchedules = () => {
         isClosable: true,
       });
     } catch (err) {
-      toast({
-        title: 'Gagal memperbarui jadwal praktek!',
-        description: 'Terjadi kesalahan, silakan coba lagi.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      if (err instanceof Error) {
+        toast({
+          title: 'Gagal memperbarui jadwal praktek!',
+          description: err.message,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     }
   };
 
@@ -137,12 +140,10 @@ const DoctorSchedules = () => {
         <Heading as="h3" size="lg" color="brand.500" marginBottom={2}>
           Jadwal Praktek
         </Heading>
-
         <Button colorScheme="brand" leftIcon={<FaEdit />} onClick={onOpen}>
           Perbarui Jadwal
         </Button>
       </HStack>
-
       <TableContainer width="full">
         <Table variant="simple">
           <Thead backgroundColor="brand.50">
@@ -153,13 +154,19 @@ const DoctorSchedules = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {(user?.schedules as any)?.[0]?.map((schedule: any, index: number) => (
+            {user?.schedules.map((schedule, index) => (
               <Tr key={index}>
                 <Td>{['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', "Jum'at", 'Sabtu'][index]}</Td>
                 <Td>
                   {schedule.startTime || ''} - {schedule.endTime || ''}
                 </Td>
-                <Td>{schedule.isActive ? 'Aktif' : 'Nonaktif'}</Td>
+                <Td>
+                  {schedule.isActive ? (
+                    <Badge colorScheme="green">Aktif</Badge>
+                  ) : (
+                    <Badge colorScheme="red">Nonaktif</Badge>
+                  )}
+                </Td>
               </Tr>
             ))}
           </Tbody>
@@ -168,6 +175,7 @@ const DoctorSchedules = () => {
 
       <Modal
         scrollBehavior="inside"
+        size="xl"
         closeOnOverlayClick={false}
         isOpen={isOpen}
         onClose={onClose}
@@ -207,7 +215,6 @@ const DoctorSchedules = () => {
                 )}
               </FormControl>
             </HStack>
-
             <Checkbox
               fontWeight={schedules[1].isActive ? 700 : 400}
               {...register('schedules.1.isActive')}
@@ -238,7 +245,6 @@ const DoctorSchedules = () => {
                 )}
               </FormControl>
             </HStack>
-
             <Checkbox
               fontWeight={schedules[2].isActive ? 700 : 400}
               {...register('schedules.2.isActive')}
@@ -269,7 +275,6 @@ const DoctorSchedules = () => {
                 )}
               </FormControl>
             </HStack>
-
             <Checkbox
               fontWeight={schedules[3].isActive ? 700 : 400}
               {...register('schedules.3.isActive')}
@@ -300,7 +305,6 @@ const DoctorSchedules = () => {
                 )}
               </FormControl>
             </HStack>
-
             <Checkbox
               fontWeight={schedules[4].isActive ? 700 : 400}
               {...register('schedules.4.isActive')}
@@ -331,7 +335,6 @@ const DoctorSchedules = () => {
                 )}
               </FormControl>
             </HStack>
-
             <Checkbox
               fontWeight={schedules[5].isActive ? 700 : 400}
               {...register('schedules.5.isActive')}
@@ -362,7 +365,6 @@ const DoctorSchedules = () => {
                 )}
               </FormControl>
             </HStack>
-
             <Checkbox
               fontWeight={schedules[6].isActive ? 700 : 400}
               {...register('schedules.6.isActive')}

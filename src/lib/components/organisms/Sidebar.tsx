@@ -1,11 +1,16 @@
 'use client';
 
+import { useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Box, Button, VStack } from '@chakra-ui/react';
 import { FaCalendarAlt, FaNotesMedical } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
+import { Box, Button, VStack } from '@chakra-ui/react';
+
+import { AuthContext } from '@/lib/contexts/auth';
 
 const Sidebar = () => {
+  const { user } = useContext(AuthContext);
+
   const pathname = usePathname();
   const router = useRouter();
 
@@ -35,26 +40,30 @@ const Sidebar = () => {
         >
           Dashboard
         </Button>
-        <Button
-          variant={pathname === '/main/appointments' ? 'solid' : 'ghost'}
-          colorScheme="brand"
-          size="lg"
-          justifyContent="start"
-          leftIcon={<FaCalendarAlt />}
-          onClick={() => router.push('/main/appointments')}
-        >
-          Janji Temu
-        </Button>
-        <Button
-          variant={pathname === '/main/medical-records' ? 'solid' : 'ghost'}
-          colorScheme="brand"
-          size="lg"
-          justifyContent="start"
-          leftIcon={<FaNotesMedical />}
-          onClick={() => router.push('/main/medical-records')}
-        >
-          Rekam Medis
-        </Button>
+        {['doctor', 'patient'].includes(user?.role || '') && (
+          <Button
+            variant={pathname === '/main/appointments' ? 'solid' : 'ghost'}
+            colorScheme="brand"
+            size="lg"
+            justifyContent="start"
+            leftIcon={<FaCalendarAlt />}
+            onClick={() => router.push('/main/appointments')}
+          >
+            Janji Temu
+          </Button>
+        )}
+        {['doctor', 'nurse', 'patient'].includes(user?.role || '') && (
+          <Button
+            variant={pathname === '/main/medical-records' ? 'solid' : 'ghost'}
+            colorScheme="brand"
+            size="lg"
+            justifyContent="start"
+            leftIcon={<FaNotesMedical />}
+            onClick={() => router.push('/main/medical-records')}
+          >
+            Rekam Medis
+          </Button>
+        )}
       </VStack>
     </Box>
   );

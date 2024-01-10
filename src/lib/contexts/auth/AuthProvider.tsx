@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setIsRegistered(false);
       setUser(null);
 
-      throw new Error('Terjadi kesalahan, silakan masuk kembali!');
+      throw new Error('Terjadi kesalahan, silakan masuk kembali.');
     } finally {
       setIsInitializing(false);
     }
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
 
-      if (!actor) throw new Error('Actor belum diinisialisasi!');
+      if (!actor) throw new Error('Actor belum diinisialisasi.');
 
       const user: Result<any, Error> = await actor.createUser(payload);
 
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(user.Ok);
       setIsRegistered(true);
     } catch (err) {
-      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+      throw new Error('Terjadi kesalahan, silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
 
-      if (!authClient) throw new Error('Klien belum diinisialisasi!');
+      if (!authClient) throw new Error('Auth client belum diinisialisasi.');
 
       await authClient.login({
         identityProvider:
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         onSuccess: async () => await initClient(authClient),
       });
     } catch (err) {
-      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+      throw new Error('Terjadi kesalahan, silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
@@ -115,12 +115,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
 
-      if (!authClient) throw new Error('Klien belum diinisialisasi!');
+      if (!authClient) throw new Error('Auth client belum diinisialisasi.');
 
       await authClient.logout();
       await initClient(authClient);
     } catch (err) {
-      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+      throw new Error('Terjadi kesalahan, silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }
@@ -130,11 +130,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
 
-      if (!authClient) throw new Error('Klien belum diinisialisasi!');
+      if (!authClient) throw new Error('Auth client belum diinisialisasi.');
 
       await initClient(authClient);
     } catch (err) {
-      throw new Error('Terjadi kesalahan, silakan coba lagi!');
+      throw new Error('Terjadi kesalahan, silakan coba lagi.');
     } finally {
       setIsLoading(false);
     }

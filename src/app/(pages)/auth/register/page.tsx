@@ -110,20 +110,22 @@ const Register = () => {
         isClosable: true,
       });
     } catch (err) {
-      toast({
-        title: 'Gagal mendaftar!',
-        description: 'Terjadi kesalahan, silakan coba lagi.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      if (err instanceof Error) {
+        return toast({
+          title: 'Gagal mendaftar!',
+          description: err.message,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
     }
   };
 
   useEffect(() => {
     if (!actor || (role !== 'admin' && role !== 'doctor' && role !== 'nurse'))
       return setHospitals([]);
-    actor.getAllHospitals().then((res: Result<any, Error>) => res.Ok && setHospitals(res.Ok));
+    actor.getAllHospitals().then((res: Result<any, Error>) => setHospitals(res.Ok || []));
   }, [actor, role]);
 
   return (

@@ -85,7 +85,6 @@ const Home = () => {
         flexDirection={['column', 'column', 'row']}
         paddingX={[4, 4, 12]}
         paddingY={12}
-        minHeight={600}
         spacing={8}
       >
         <SimpleGrid columns={2} spacing={4} width="full">
@@ -180,7 +179,6 @@ const Home = () => {
         height="full"
         paddingX={[4, 4, 12]}
         paddingY={12}
-        minHeight={400}
         spacing={4}
       >
         <Heading as="h2" size="xl" color="brand.500">
@@ -302,7 +300,6 @@ const Home = () => {
         alignItems="start"
         paddingX={[4, 4, 12]}
         paddingY={12}
-        minHeight={600}
         spacing={8}
       >
         <VStack alignItems="start" textAlign="justify" spacing={4}>
