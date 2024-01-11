@@ -2,7 +2,7 @@
 
 import { useContext } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { FaCalendarAlt, FaNotesMedical } from 'react-icons/fa';
+import { FaCalendarAlt, FaNotesMedical, FaUserCheck } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 import { Box, Button, VStack } from '@chakra-ui/react';
 
@@ -62,6 +62,18 @@ const Sidebar = () => {
             onClick={() => router.push('/main/medical-records')}
           >
             Rekam Medis
+          </Button>
+        )}
+        {['admin'].includes(user?.role || '') && (
+          <Button
+            variant={pathname === '/main/verify-users' ? 'solid' : 'ghost'}
+            colorScheme="brand"
+            size="lg"
+            justifyContent="start"
+            leftIcon={<FaUserCheck />}
+            onClick={() => router.push('/main/verify-users')}
+          >
+            Verifikasi Pengguna
           </Button>
         )}
       </VStack>

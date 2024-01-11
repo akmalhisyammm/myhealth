@@ -1,21 +1,20 @@
 'use client';
 
 import { useContext, useEffect, useState } from 'react';
+import { FaFileAlt } from 'react-icons/fa';
 import {
-  FaFile,
-  FaFileAlt,
-  FaFileMedical,
-  FaFileMedicalAlt,
-  FaInfo,
-  FaPlus,
-  FaTrash,
-} from 'react-icons/fa';
-import {
+  Badge,
+  Box,
   Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
+  Heading,
+  IconButton,
+  ListItem,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalOverlay,
   TableContainer,
   Table,
   Thead,
@@ -24,21 +23,9 @@ import {
   Tbody,
   Td,
   Text,
-  Textarea,
-  VStack,
-  Heading,
-  Badge,
-  IconButton,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  useDisclosure,
   UnorderedList,
-  ListItem,
-  Box,
+  VStack,
+  useDisclosure,
 } from '@chakra-ui/react';
 import dayjs from 'dayjs';
 
@@ -47,21 +34,36 @@ import { nat64ToDate } from '@/lib/utils/date';
 
 import type { Result } from 'azle';
 import type { Appointment, Error, MedicalRecord, User } from '@/contract';
+import { Principal } from '@dfinity/principal';
 
-const PatientMedicalRecords = () => {
+type PatientMedicalRecordsProps = {
+  id?: string;
+};
+
+const PatientMedicalRecords = ({ id }: PatientMedicalRecordsProps) => {
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [medicalRecordDetail, setMedicalRecordDetail] = useState<MedicalRecord | null>(null);
   const [appointmentDetail, setAppointmentDetail] = useState<Appointment | null>(null);
+  const [patientDetail, setPatientDetail] = useState<User | null>(null);
 
   const { actor } = useContext(AuthContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   useEffect(() => {
     if (!actor) return;
-    actor
-      .getCallerMedicalRecords()
-      .then((res: Result<any, Error>) => setMedicalRecords(res.Ok || []));
-  }, [actor]);
+    !!id
+      ? actor.getUser(Principal.fromText(id)).then((res: Result<any, Error>) => {
+          if (res.Ok) {
+            setPatientDetail(res.Ok);
+            actor
+              .getPatientMedicalRecords(res.Ok.id)
+              .then((res: Result<any, Error>) => setMedicalRecords(res.Ok || []));
+          }
+        })
+      : actor
+          .getCallerMedicalRecords()
+          .then((res: Result<any, Error>) => setMedicalRecords(res.Ok || []));
+  }, [actor, id]);
 
   return (
     <VStack
@@ -77,6 +79,16 @@ const PatientMedicalRecords = () => {
       <Heading as="h3" size="lg" color="brand.500">
         Rekam Medis
       </Heading>
+      {!!id && (
+        <>
+          <Text>
+            <strong>ID Pasien:</strong> {id}
+          </Text>
+          <Text>
+            <strong>Nama Pasien:</strong> {patientDetail?.name}
+          </Text>
+        </>
+      )}
       <TableContainer width="full">
         <Table variant="simple">
           <Thead backgroundColor="brand.50">
@@ -84,11 +96,11 @@ const PatientMedicalRecords = () => {
               <Th>Rumah Sakit</Th>
               <Th>Tanggal & Waktu</Th>
               <Th>Status</Th>
-              <Th>Aksi</Th>
+              <Th width={200}>Aksi</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {medicalRecords.length ? (
+            {!!medicalRecords.length ? (
               medicalRecords
                 .sort((a, b) => Number(a.appointment.startTime - b.appointment.startTime))
                 .map((medicalRecord) => (
@@ -113,7 +125,7 @@ const PatientMedicalRecords = () => {
                       medicalRecord.assessment &&
                       medicalRecord.plan &&
                       medicalRecord.education &&
-                      medicalRecord.prescriptions.length ? (
+                      !!medicalRecord.prescriptions.length ? (
                         <Badge colorScheme="green">Telah Dikaji</Badge>
                       ) : (
                         <Badge colorScheme="yellow">Menunggu Kajian</Badge>
@@ -135,7 +147,7 @@ const PatientMedicalRecords = () => {
                 ))
             ) : (
               <Tr>
-                <Td textAlign="center" colSpan={3}>
+                <Td textAlign="center" colSpan={4}>
                   Tidak ada rekam medis.
                 </Td>
               </Tr>
@@ -236,7 +248,7 @@ const PatientMedicalRecords = () => {
               <Text>
                 <strong>Resep Obat:</strong> {!medicalRecordDetail?.prescriptions.length && '-'}
               </Text>
-              {medicalRecordDetail?.prescriptions.length && (
+              {!!medicalRecordDetail?.prescriptions.length && (
                 <UnorderedList marginTop={2}>
                   {medicalRecordDetail?.prescriptions.map((prescription, index) => (
                     <ListItem key={index}>

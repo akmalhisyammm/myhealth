@@ -1,16 +1,11 @@
 'use client';
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { FaInfo, FaPlus, FaTrash } from 'react-icons/fa';
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  AlertDialogCloseButton,
+  Alert,
+  AlertIcon,
   Badge,
   Button,
   FormControl,
@@ -37,8 +32,6 @@ import {
   VStack,
   useDisclosure,
   useToast,
-  Alert,
-  AlertIcon,
 } from '@chakra-ui/react';
 import { Principal } from '@dfinity/principal';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -48,6 +41,7 @@ import dayjs from 'dayjs';
 
 import { SPECIALIZATION_OPTIONS } from '@/lib/constants/options';
 import { AuthContext } from '@/lib/contexts/auth';
+import { ConfirmationAlert } from '@/lib/components/molecules';
 import { dateToNat64, nat64ToDate } from '@/lib/utils/date';
 import { appointmentSchema } from '@/lib/utils/schema';
 
@@ -87,7 +81,6 @@ const PatientAppointments = () => {
   const doctor = useWatch({ control, name: 'doctorId' });
   const hospital = useWatch({ control, name: 'hospitalId' });
   const specialization = useWatch({ control, name: 'specialization' });
-  const cancelRef = useRef(null);
   const createModal = useDisclosure();
   const detailModal = useDisclosure();
   const deleteDialog = useDisclosure();
@@ -216,98 +209,91 @@ const PatientAppointments = () => {
   }, [actor, doctor]);
 
   return (
-    <>
-      <VStack
-        width="full"
-        alignItems="start"
-        backgroundColor="white"
-        boxShadow="md"
-        padding={8}
-        borderWidth={1}
-        borderRadius={8}
-        spacing={4}
-      >
-        <HStack justifyContent="space-between" width="full">
-          <Heading as="h3" size="lg" color="brand.500">
-            Janji Temu
-          </Heading>
-          <Button
-            colorScheme="brand"
-            marginLeft="auto"
-            leftIcon={<FaPlus />}
-            onClick={createModal.onOpen}
-          >
-            Buat Janji
-          </Button>
-        </HStack>
-        <TableContainer width="full">
-          <Table variant="simple">
-            <Thead backgroundColor="brand.50">
-              <Tr>
-                <Th>Rumah Sakit</Th>
-                <Th>Tanggal & Waktu</Th>
-                <Th>Status</Th>
-                <Th>Aksi</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {appointments.length ? (
-                appointments
-                  .sort((a, b) => Number(a.startTime - b.startTime))
-                  .map((appointment) => (
-                    <Tr key={appointment.id}>
-                      <Td>{appointment.hospital.name}</Td>
-                      <Td>
-                        {`${dayjs(nat64ToDate(appointment.startTime)).format(
-                          'DD/MM/YYYY'
-                        )} @ ${dayjs(nat64ToDate(appointment.startTime)).format('HH:mm')}-${dayjs(
-                          nat64ToDate(appointment.endTime)
-                        ).format('HH:mm')}`}
-                      </Td>
-                      <Td>
-                        {appointment.isConfirmed ? (
-                          <Badge colorScheme="green">Telah dikonfirmasi</Badge>
-                        ) : (
-                          <Badge colorScheme="yellow">Menunggu konfirmasi</Badge>
-                        )}
-                      </Td>
-                      <Td display="flex" gap={2}>
+    <VStack
+      width="full"
+      alignItems="start"
+      backgroundColor="white"
+      boxShadow="md"
+      padding={8}
+      borderWidth={1}
+      borderRadius={8}
+      spacing={4}
+    >
+      <HStack justifyContent="space-between" width="full">
+        <Heading as="h3" size="lg" color="brand.500">
+          Janji Temu
+        </Heading>
+        <Button colorScheme="brand" leftIcon={<FaPlus />} onClick={createModal.onOpen}>
+          Buat Janji
+        </Button>
+      </HStack>
+      <TableContainer width="full">
+        <Table variant="simple">
+          <Thead backgroundColor="brand.50">
+            <Tr>
+              <Th>Rumah Sakit</Th>
+              <Th>Tanggal & Waktu</Th>
+              <Th>Status</Th>
+              <Th width={200}>Aksi</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {!!appointments.length ? (
+              appointments
+                .sort((a, b) => Number(a.startTime - b.startTime))
+                .map((appointment) => (
+                  <Tr key={appointment.id}>
+                    <Td>{appointment.hospital.name}</Td>
+                    <Td>
+                      {`${dayjs(nat64ToDate(appointment.startTime)).format('DD/MM/YYYY')} @ ${dayjs(
+                        nat64ToDate(appointment.startTime)
+                      ).format('HH:mm')}-${dayjs(nat64ToDate(appointment.endTime)).format(
+                        'HH:mm'
+                      )}`}
+                    </Td>
+                    <Td>
+                      {appointment.isConfirmed ? (
+                        <Badge colorScheme="green">Telah dikonfirmasi</Badge>
+                      ) : (
+                        <Badge colorScheme="yellow">Menunggu konfirmasi</Badge>
+                      )}
+                    </Td>
+                    <Td display="flex" gap={2}>
+                      <IconButton
+                        aria-label="Appointment detail"
+                        colorScheme="brand"
+                        icon={<FaInfo />}
+                        onClick={() => {
+                          setAppointmentDetail(appointment);
+                          setHospitalDetail(appointment.hospital);
+                          setDoctorDetail(appointment.doctor);
+                          detailModal.onOpen();
+                        }}
+                      />
+                      {!appointment.isConfirmed && (
                         <IconButton
-                          aria-label="Appointment detail"
-                          colorScheme="brand"
-                          icon={<FaInfo />}
+                          aria-label="Delete appointment"
+                          colorScheme="red"
+                          icon={<FaTrash />}
                           onClick={() => {
                             setAppointmentDetail(appointment);
-                            setHospitalDetail(appointment.hospital);
-                            setDoctorDetail(appointment.doctor);
-                            detailModal.onOpen();
+                            deleteDialog.onOpen();
                           }}
                         />
-                        {!appointment.isConfirmed && (
-                          <IconButton
-                            aria-label="Delete appointment"
-                            colorScheme="red"
-                            icon={<FaTrash />}
-                            onClick={() => {
-                              setAppointmentDetail(appointment);
-                              deleteDialog.onOpen();
-                            }}
-                          />
-                        )}
-                      </Td>
-                    </Tr>
-                  ))
-              ) : (
-                <Tr>
-                  <Td colSpan={4} textAlign="center">
-                    Tidak ada janji temu yang akan datang.
-                  </Td>
-                </Tr>
-              )}
-            </Tbody>
-          </Table>
-        </TableContainer>
-      </VStack>
+                      )}
+                    </Td>
+                  </Tr>
+                ))
+            ) : (
+              <Tr>
+                <Td colSpan={4} textAlign="center">
+                  Tidak ada janji temu yang akan datang.
+                </Td>
+              </Tr>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
 
       <Modal
         scrollBehavior="inside"
@@ -320,115 +306,128 @@ const PatientAppointments = () => {
         <ModalOverlay />
         <ModalContent as="form" onSubmit={handleSubmit(onCreateAppointment)}>
           <ModalHeader borderBottomWidth={2}>Buat Janji Temu</ModalHeader>
-          <ModalBody display="flex" flexDirection="column" padding={6} gap={4}>
-            <FormControl isInvalid={!!errors.hospitalId} isRequired>
-              <FormLabel>Rumah Sakit</FormLabel>
-              <Controller
-                control={control}
-                name="hospitalId"
-                defaultValue=""
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <Select
-                    placeholder="Pilih rumah sakit"
-                    options={hospitals.map((hospital) => ({
-                      value: hospital.id,
-                      label: hospital.name,
-                    }))}
-                    value={
-                      hospitals.find((hospital) => hospital.id === value)
-                        ? {
-                            value,
-                            label: hospitals.find((hospital) => hospital.id === value)?.name,
-                          }
-                        : null
-                    }
-                    onChange={(option) => onChange(option?.value || '')}
-                    {...rest}
-                  />
+          <ModalBody padding={6}>
+            <Alert status="info" variant="left-accent" marginBottom={4}>
+              <AlertIcon />
+              Dengan membuat janji temu, Anda mengizinkan dokter yang dipilih untuk mengakses data
+              rekam medis Anda.
+            </Alert>
+            <VStack alignItems="start" gap={4}>
+              <FormControl isInvalid={!!errors.hospitalId} isRequired>
+                <FormLabel>Rumah Sakit</FormLabel>
+                <Controller
+                  control={control}
+                  name="hospitalId"
+                  defaultValue=""
+                  render={({ field: { value, onChange, ...rest } }) => (
+                    <Select
+                      placeholder="Pilih rumah sakit"
+                      options={hospitals.map((hospital) => ({
+                        value: hospital.id,
+                        label: hospital.name,
+                      }))}
+                      value={
+                        hospitals.find((hospital) => hospital.id === value)
+                          ? {
+                              value,
+                              label: hospitals.find((hospital) => hospital.id === value)?.name,
+                            }
+                          : null
+                      }
+                      onChange={(option) => onChange(option?.value || '')}
+                      {...rest}
+                    />
+                  )}
+                />
+                {errors.hospitalId && (
+                  <FormErrorMessage>{errors.hospitalId.message}</FormErrorMessage>
                 )}
-              />
-              {errors.hospitalId && (
-                <FormErrorMessage>{errors.hospitalId.message}</FormErrorMessage>
-              )}
-            </FormControl>
-            <FormControl isInvalid={!!errors.specialization} isRequired>
-              <FormLabel>Spesialisasi</FormLabel>
-              <Controller
-                control={control}
-                name="specialization"
-                defaultValue=""
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <Select
-                    placeholder="Pilih spesialisasi"
-                    isDisabled={!hospital}
-                    options={SPECIALIZATION_OPTIONS}
-                    value={SPECIALIZATION_OPTIONS.find((option) => option.value === value) || null}
-                    onChange={(option) => onChange(option?.value || '')}
-                    {...rest}
-                  />
+              </FormControl>
+              <FormControl isInvalid={!!errors.specialization} isRequired>
+                <FormLabel>Spesialisasi</FormLabel>
+                <Controller
+                  control={control}
+                  name="specialization"
+                  defaultValue=""
+                  render={({ field: { value, onChange, ...rest } }) => (
+                    <Select
+                      placeholder="Pilih spesialisasi"
+                      isDisabled={!hospital}
+                      options={SPECIALIZATION_OPTIONS}
+                      value={
+                        SPECIALIZATION_OPTIONS.find((option) => option.value === value) || null
+                      }
+                      onChange={(option) => onChange(option?.value || '')}
+                      {...rest}
+                    />
+                  )}
+                />
+                {errors.specialization && (
+                  <FormErrorMessage>{errors.specialization.message}</FormErrorMessage>
                 )}
-              />
-              {errors.specialization && (
-                <FormErrorMessage>{errors.specialization.message}</FormErrorMessage>
-              )}
-            </FormControl>
-            <FormControl isInvalid={!!errors.doctorId} isRequired>
-              <FormLabel>Dokter</FormLabel>
-              <Controller
-                control={control}
-                name="doctorId"
-                defaultValue=""
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <Select
-                    placeholder="Pilih dokter"
-                    isDisabled={!specialization}
-                    options={doctors.map((doctor) => ({
-                      value: doctor.id.toText(),
-                      label: doctor.name,
-                    }))}
-                    value={
-                      doctors.find((doctor) => doctor.id.toText() === value)
-                        ? {
-                            value,
-                            label: doctors.find((doctor) => doctor.id.toText() === value)?.name,
-                          }
-                        : null
-                    }
-                    onChange={(option) => onChange(option?.value || '')}
-                    {...rest}
-                  />
+              </FormControl>
+              <FormControl isInvalid={!!errors.doctorId} isRequired>
+                <FormLabel>Dokter</FormLabel>
+                <Controller
+                  control={control}
+                  name="doctorId"
+                  defaultValue=""
+                  render={({ field: { value, onChange, ...rest } }) => (
+                    <Select
+                      placeholder="Pilih dokter"
+                      isDisabled={!specialization}
+                      options={doctors.map((doctor) => ({
+                        value: doctor.id.toText(),
+                        label: doctor.name,
+                      }))}
+                      value={
+                        doctors.find((doctor) => doctor.id.toText() === value)
+                          ? {
+                              value,
+                              label: doctors.find((doctor) => doctor.id.toText() === value)?.name,
+                            }
+                          : null
+                      }
+                      onChange={(option) => onChange(option?.value || '')}
+                      {...rest}
+                    />
+                  )}
+                />
+                {errors.doctorId && <FormErrorMessage>{errors.doctorId.message}</FormErrorMessage>}
+              </FormControl>
+              <FormControl isInvalid={!!errors.startTime} isRequired>
+                <FormLabel>Tanggal & Waktu</FormLabel>
+                <Controller
+                  control={control}
+                  name="startTime"
+                  defaultValue={undefined}
+                  render={({ field: { value, onChange, ...rest } }) => (
+                    <DatePicker
+                      showTimeSelect
+                      dateFormat="dd/MM/yyyy HH:mm"
+                      minDate={new Date()}
+                      selected={value}
+                      readOnly={!doctor}
+                      disabled={!doctor}
+                      filterDate={(date) => filterAppointmentDate(date)}
+                      filterTime={(time) => filterAppointmentTime(time)}
+                      onChange={onChange}
+                      {...rest}
+                    />
+                  )}
+                />
+                {errors.startTime && (
+                  <FormErrorMessage>{errors.startTime.message}</FormErrorMessage>
                 )}
-              />
-              {errors.doctorId && <FormErrorMessage>{errors.doctorId.message}</FormErrorMessage>}
-            </FormControl>
-            <FormControl isInvalid={!!errors.startTime} isRequired>
-              <FormLabel>Tanggal & Waktu</FormLabel>
-              <Controller
-                control={control}
-                name="startTime"
-                defaultValue={undefined}
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <DatePicker
-                    showTimeSelect
-                    dateFormat="dd/MM/yyyy HH:mm"
-                    minDate={new Date()}
-                    selected={value}
-                    readOnly={!doctor}
-                    disabled={!doctor}
-                    filterDate={(date) => filterAppointmentDate(date)}
-                    filterTime={(time) => filterAppointmentTime(time)}
-                    onChange={onChange}
-                    {...rest}
-                  />
+              </FormControl>
+              <FormControl isInvalid={!!errors.complaint} isRequired>
+                <FormLabel>Keluhan</FormLabel>
+                <Textarea isDisabled={!doctor} {...register('complaint')} />
+                {errors.complaint && (
+                  <FormErrorMessage>{errors.complaint.message}</FormErrorMessage>
                 )}
-              />
-              {errors.startTime && <FormErrorMessage>{errors.startTime.message}</FormErrorMessage>}
-            </FormControl>
-            <FormControl isInvalid={!!errors.complaint} isRequired>
-              <FormLabel>Keluhan</FormLabel>
-              <Textarea isDisabled={!doctor} {...register('complaint')} />
-              {errors.complaint && <FormErrorMessage>{errors.complaint.message}</FormErrorMessage>}
-            </FormControl>
+              </FormControl>
+            </VStack>
           </ModalBody>
           <ModalFooter borderTopWidth={2}>
             <Button
@@ -521,45 +520,21 @@ const PatientAppointments = () => {
         </ModalContent>
       </Modal>
 
-      <AlertDialog
-        motionPreset="slideInBottom"
-        leastDestructiveRef={cancelRef}
-        closeOnOverlayClick={false}
+      <ConfirmationAlert
+        title="Hapus Janji Temu"
+        description="Apakah Anda yakin ingin menghapus janji ini?"
+        colorScheme="red"
+        actionText="Hapus"
+        loadingText="Menghapus"
         isOpen={deleteDialog.isOpen}
-        onClose={deleteDialog.onClose}
-        isCentered
-      >
-        <AlertDialogOverlay />
-        <AlertDialogContent>
-          <AlertDialogHeader>Hapus Janji Temu</AlertDialogHeader>
-          <AlertDialogCloseButton />
-          <AlertDialogBody>Apakah Anda yakin ingin menghapus janji ini?</AlertDialogBody>
-          <AlertDialogFooter>
-            <Button
-              ref={cancelRef}
-              colorScheme="brand"
-              variant="outline"
-              marginRight={2}
-              isDisabled={isDeleting}
-              onClick={() => {
-                setAppointmentDetail(null);
-                deleteDialog.onClose();
-              }}
-            >
-              Batal
-            </Button>
-            <Button
-              colorScheme="red"
-              loadingText="Menghapus"
-              isLoading={isDeleting}
-              onClick={onDeleteAppointment}
-            >
-              Hapus
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+        isLoading={isDeleting}
+        onConfirm={onDeleteAppointment}
+        onClose={() => {
+          setAppointmentDetail(null);
+          deleteDialog.onClose();
+        }}
+      />
+    </VStack>
   );
 };
 

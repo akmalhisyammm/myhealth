@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { FaInfo, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaInfo, FaPlus } from 'react-icons/fa';
 import {
   Button,
   FormControl,
@@ -17,7 +17,6 @@ import {
   Tbody,
   Td,
   Text,
-  Textarea,
   VStack,
   Heading,
   Badge,
@@ -52,7 +51,6 @@ const NurseMedicalRecords = () => {
 
   const { actor } = useContext(AuthContext);
   const {
-    control,
     register,
     handleSubmit,
     reset,
@@ -75,8 +73,6 @@ const NurseMedicalRecords = () => {
   const toast = useToast();
 
   const onUpdateMedicalRecord = async (payload: InferType<typeof medicalRecordNurseSchema>) => {
-    console.log(payload);
-
     if (!actor) return;
 
     const result: Result<any, Error> = await actor.updatePatientMedicalRecord(
@@ -152,7 +148,7 @@ const NurseMedicalRecords = () => {
             </Tr>
           </Thead>
           <Tbody>
-            {medicalRecords.length ? (
+            {!!medicalRecords.length ? (
               medicalRecords
                 .sort((a, b) => Number(a.appointment.startTime - b.appointment.startTime))
                 .map((medicalRecord) => (
@@ -196,7 +192,7 @@ const NurseMedicalRecords = () => {
                 ))
             ) : (
               <Tr>
-                <Td textAlign="center" colSpan={3}>
+                <Td textAlign="center" colSpan={4}>
                   Tidak ada rekam medis yang belum dikaji.
                 </Td>
               </Tr>
@@ -248,7 +244,7 @@ const NurseMedicalRecords = () => {
                 <FormLabel>Nadi</FormLabel>
                 <InputGroup>
                   <Input type="number" {...register('pulse')} />
-                  <InputRightAddon>bpm</InputRightAddon>
+                  <InputRightAddon>x/menit</InputRightAddon>
                 </InputGroup>
                 {errors.pulse && <FormErrorMessage>{errors.pulse.message}</FormErrorMessage>}
               </FormControl>
@@ -312,29 +308,6 @@ const NurseMedicalRecords = () => {
         <ModalContent>
           <ModalHeader borderBottomWidth={2}>Detail Rekam Medis</ModalHeader>
           <ModalBody display="flex" flexDirection="column" padding={6} gap={4}>
-            <Heading as="h4" size="md" color="brand.500">
-              Informasi Pasien
-            </Heading>
-            <Text>
-              <strong>Nama Pasien:</strong> {patientDetail?.name}
-            </Text>
-            <Text>
-              <strong>Umur:</strong> {patientDetail?.age}
-            </Text>
-            <Text>
-              <strong>Tempat & Tanggal Lahir:</strong> {patientDetail?.birthPlace},{' '}
-              {patientDetail?.birthDate
-                ? dayjs(nat64ToDate(patientDetail.birthDate)).locale('id').format('DD MMMM YYYY')
-                : ''}
-            </Text>
-            <Text>
-              <strong>Jenis Kelamin:</strong>{' '}
-              {patientDetail?.gender === 'male' ? 'Laki-laki' : 'Perempuan'}
-            </Text>
-            <Text>
-              <strong>Golongan Darah:</strong> {patientDetail?.bloodType}
-              {patientDetail?.bloodRhesus}
-            </Text>
             <Heading as="h4" size="md" color="brand.500" marginTop={4}>
               Informasi Janji Temu
             </Heading>
@@ -358,6 +331,29 @@ const NurseMedicalRecords = () => {
             </Text>
             <Text>
               <strong>Status:</strong> Telah diperiksa
+            </Text>
+            <Heading as="h4" size="md" color="brand.500">
+              Informasi Pasien
+            </Heading>
+            <Text>
+              <strong>Nama Pasien:</strong> {patientDetail?.name}
+            </Text>
+            <Text>
+              <strong>Umur:</strong> {patientDetail?.age}
+            </Text>
+            <Text>
+              <strong>Tempat & Tanggal Lahir:</strong> {patientDetail?.birthPlace},{' '}
+              {patientDetail?.birthDate
+                ? dayjs(nat64ToDate(patientDetail.birthDate)).locale('id').format('DD MMMM YYYY')
+                : ''}
+            </Text>
+            <Text>
+              <strong>Jenis Kelamin:</strong>{' '}
+              {patientDetail?.gender === 'male' ? 'Laki-laki' : 'Perempuan'}
+            </Text>
+            <Text>
+              <strong>Golongan Darah:</strong> {patientDetail?.bloodType}
+              {patientDetail?.bloodRhesus}
             </Text>
           </ModalBody>
           <ModalFooter borderTopWidth={2}>

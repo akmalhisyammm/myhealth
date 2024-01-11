@@ -23,7 +23,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { BiMenu } from 'react-icons/bi';
-import { FaCalendarAlt, FaNotesMedical, FaSignOutAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaKey, FaNotesMedical, FaSignOutAlt } from 'react-icons/fa';
 import { MdDashboard } from 'react-icons/md';
 import { SiInternetcomputer } from 'react-icons/si';
 
@@ -35,7 +35,7 @@ type NavbarProps = {
 };
 
 const Navbar = ({ isLoggedIn }: NavbarProps) => {
-  const { isLoading, signIn, signOut } = useContext(AuthContext);
+  const { user, isLoading, signIn, signOut } = useContext(AuthContext);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const pathname = usePathname();
@@ -113,26 +113,42 @@ const Navbar = ({ isLoggedIn }: NavbarProps) => {
                       >
                         Dashboard
                       </Button>
-                      <Button
-                        variant={pathname === '/main/appointments' ? 'solid' : 'ghost'}
-                        colorScheme="brand"
-                        size="lg"
-                        justifyContent="start"
-                        leftIcon={<FaCalendarAlt />}
-                        onClick={() => router.push('/main/appointments')}
-                      >
-                        Janji Temu
-                      </Button>
-                      <Button
-                        variant={pathname === '/main/medical-records' ? 'solid' : 'ghost'}
-                        colorScheme="brand"
-                        size="lg"
-                        justifyContent="start"
-                        leftIcon={<FaNotesMedical />}
-                        onClick={() => router.push('/main/medical-records')}
-                      >
-                        Rekam Medis
-                      </Button>
+                      {['doctor', 'patient'].includes(user?.role || '') && (
+                        <Button
+                          variant={pathname === '/main/appointments' ? 'solid' : 'ghost'}
+                          colorScheme="brand"
+                          size="lg"
+                          justifyContent="start"
+                          leftIcon={<FaCalendarAlt />}
+                          onClick={() => router.push('/main/appointments')}
+                        >
+                          Janji Temu
+                        </Button>
+                      )}
+                      {['doctor', 'nurse', 'patient'].includes(user?.role || '') && (
+                        <Button
+                          variant={pathname === '/main/medical-records' ? 'solid' : 'ghost'}
+                          colorScheme="brand"
+                          size="lg"
+                          justifyContent="start"
+                          leftIcon={<FaNotesMedical />}
+                          onClick={() => router.push('/main/medical-records')}
+                        >
+                          Rekam Medis
+                        </Button>
+                      )}
+                      {['admin'].includes(user?.role || '') && (
+                        <Button
+                          variant={pathname === '/main/verify-users' ? 'solid' : 'ghost'}
+                          colorScheme="brand"
+                          size="lg"
+                          justifyContent="start"
+                          leftIcon={<FaKey />}
+                          onClick={() => router.push('/main/verify-users')}
+                        >
+                          Verifikasi Pengguna
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         colorScheme="red"

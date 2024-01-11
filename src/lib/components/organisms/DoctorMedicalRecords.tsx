@@ -2,7 +2,7 @@
 
 import { useContext, useEffect, useState } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
-import { FaInfo, FaPlus, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaFileAlt, FaInfo, FaPlus, FaTrash } from 'react-icons/fa';
 import {
   Button,
   FormControl,
@@ -41,6 +41,7 @@ import { medicalRecordDoctorSchema } from '@/lib/utils/schema';
 import type { Result } from 'azle';
 import type { InferType } from 'yup';
 import type { Appointment, Error, MedicalRecord, User } from '@/contract';
+import { useRouter } from 'next/navigation';
 
 const DoctorMedicalRecords = () => {
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
@@ -74,11 +75,10 @@ const DoctorMedicalRecords = () => {
 
   const createModal = useDisclosure();
   const detailModal = useDisclosure();
+  const router = useRouter();
   const toast = useToast();
 
   const onUpdateMedicalRecord = async (payload: InferType<typeof medicalRecordDoctorSchema>) => {
-    console.log(payload);
-
     if (!actor) return;
 
     const result: Result<any, Error> = await actor.updatePatientMedicalRecord(
@@ -149,25 +149,33 @@ const DoctorMedicalRecords = () => {
           <Thead backgroundColor="brand.50">
             <Tr>
               <Th>Nama Pasien</Th>
+              <Th>Tanggal & Waktu</Th>
               <Th>Status</Th>
-              <Th>Aksi</Th>
+              <Th width={200}>Aksi</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {medicalRecords.length ? (
+            {!!medicalRecords.length ? (
               medicalRecords
                 .sort((a, b) => Number(a.appointment.startTime - b.appointment.startTime))
                 .map((medicalRecord) => (
                   <Tr key={medicalRecord.id}>
                     <Td>{medicalRecord.patient.name}</Td>
                     <Td>
+                      {`${dayjs(nat64ToDate(medicalRecord.appointment.startTime)).format(
+                        'DD/MM/YYYY'
+                      )} @ ${dayjs(nat64ToDate(medicalRecord.appointment.startTime)).format(
+                        'HH:mm'
+                      )}-${dayjs(nat64ToDate(medicalRecord.appointment.endTime)).format('HH:mm')}`}
+                    </Td>
+                    <Td>
                       <Badge colorScheme="yellow">Belum Dikaji</Badge>
                     </Td>
                     <Td display="flex" gap={2}>
                       <IconButton
-                        aria-label="Buat"
+                        aria-label="Kaji"
                         colorScheme="green"
-                        icon={<FaPlus />}
+                        icon={<FaEdit />}
                         onClick={() => {
                           setMedicalRecordDetail(medicalRecord);
                           setAppointmentDetail(medicalRecord.appointment);
@@ -191,7 +199,7 @@ const DoctorMedicalRecords = () => {
                 ))
             ) : (
               <Tr>
-                <Td textAlign="center" colSpan={3}>
+                <Td textAlign="center" colSpan={4}>
                   Tidak ada rekam medis yang belum dikaji.
                 </Td>
               </Tr>
@@ -377,54 +385,69 @@ const DoctorMedicalRecords = () => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader borderBottomWidth={2}>Detail Rekam Medis</ModalHeader>
-          <ModalBody display="flex" flexDirection="column" padding={6} gap={4}>
-            <Heading as="h4" size="md" color="brand.500">
-              Informasi Pasien
-            </Heading>
-            <Text>
-              <strong>Nama Pasien:</strong> {patientDetail?.name}
-            </Text>
-            <Text>
-              <strong>Umur:</strong> {patientDetail?.age}
-            </Text>
-            <Text>
-              <strong>Tempat & Tanggal Lahir:</strong> {patientDetail?.birthPlace},{' '}
-              {patientDetail?.birthDate
-                ? dayjs(nat64ToDate(patientDetail.birthDate)).locale('id').format('DD MMMM YYYY')
-                : ''}
-            </Text>
-            <Text>
-              <strong>Jenis Kelamin:</strong>{' '}
-              {patientDetail?.gender === 'male' ? 'Laki-laki' : 'Perempuan'}
-            </Text>
-            <Text>
-              <strong>Golongan Darah:</strong> {patientDetail?.bloodType}
-              {patientDetail?.bloodRhesus}
-            </Text>
-            <Heading as="h4" size="md" color="brand.500" marginTop={4}>
-              Informasi Janji Temu
-            </Heading>
-            <Text>
-              <strong>Rumah Sakit:</strong> {appointmentDetail?.hospital.name}
-            </Text>
-            <Text>
-              <strong>Tanggal & Waktu:</strong>{' '}
-              {appointmentDetail?.startTime
-                ? `${dayjs(nat64ToDate(appointmentDetail?.startTime))
-                    .locale('id')
-                    .format('D MMMM YYYY')} @ ${dayjs(
-                    nat64ToDate(appointmentDetail?.startTime)
-                  ).format('HH:mm')}-${dayjs(nat64ToDate(appointmentDetail?.endTime)).format(
-                    'HH:mm'
-                  )}`
-                : ''}
-            </Text>
-            <Text>
-              <strong>Keluhan:</strong> {appointmentDetail?.complaint}
-            </Text>
-            <Text>
-              <strong>Status:</strong> Telah diperiksa
-            </Text>
+          <ModalBody padding={6}>
+            <VStack alignItems="start" gap={4}>
+              <Heading as="h4" size="md" color="brand.500">
+                Informasi Janji Temu
+              </Heading>
+              <Text>
+                <strong>Rumah Sakit:</strong> {appointmentDetail?.hospital.name}
+              </Text>
+              <Text>
+                <strong>Tanggal & Waktu:</strong>{' '}
+                {appointmentDetail?.startTime
+                  ? `${dayjs(nat64ToDate(appointmentDetail?.startTime))
+                      .locale('id')
+                      .format('D MMMM YYYY')} @ ${dayjs(
+                      nat64ToDate(appointmentDetail?.startTime)
+                    ).format('HH:mm')}-${dayjs(nat64ToDate(appointmentDetail?.endTime)).format(
+                      'HH:mm'
+                    )}`
+                  : ''}
+              </Text>
+              <Text>
+                <strong>Keluhan:</strong> {appointmentDetail?.complaint}
+              </Text>
+              <Text>
+                <strong>Status:</strong> Selesai
+              </Text>
+              <Heading as="h4" size="md" color="brand.500" marginTop={4}>
+                Informasi Pasien
+              </Heading>
+              <Text>
+                <strong>Nama:</strong> {patientDetail?.name}
+              </Text>
+              <Text>
+                <strong>Umur:</strong> {patientDetail?.age}{' '}
+              </Text>
+              <Text>
+                <strong>Jenis Kelamin:</strong>{' '}
+                {patientDetail?.gender === 'male' ? 'Laki-Laki' : 'Perempuan'}
+              </Text>
+              <Text>
+                <strong>Golongan Darah:</strong> {patientDetail?.bloodType}
+                {patientDetail?.bloodRhesus}
+              </Text>
+              <Text>
+                <strong>Domisili:</strong> {patientDetail?.city}, {patientDetail?.province}
+              </Text>
+              <Text>
+                <strong>Email:</strong> {patientDetail?.email}
+              </Text>
+              <Text>
+                <strong>Telepon:</strong> {patientDetail?.phone}
+              </Text>
+              <Button
+                width="full"
+                colorScheme="brand"
+                leftIcon={<FaFileAlt />}
+                onClick={() =>
+                  router.push(`/main/medical-records?patientId=${patientDetail?.id.toText()}`)
+                }
+              >
+                Lihat Rekam Medis
+              </Button>
+            </VStack>
           </ModalBody>
           <ModalFooter borderTopWidth={2}>
             <Button

@@ -530,99 +530,143 @@ export default Canister({
    * @returns void.
    */
   init: init([], () => {
-    // Create default hospitals and insert it into storage.
-    const firstHospital = {
-      id: uuidv4(),
-      name: 'RSUD Tangerang',
-      description: 'Rumah sakit umum daerah Tangerang',
-      address: 'Jl. Jend. Sudirman No. 2',
-      subDistrict: 'Kebon Nanas',
-      district: 'Tangerang',
-      city: 'Tangerang',
-      province: 'Banten',
-      postalCode: '15118',
-      country: 'Indonesia',
-      createdAt: ic.time(),
-      updatedAt: ic.time(),
-    };
-    const secondHospital = {
-      id: uuidv4(),
-      name: 'RSUD Cilegon',
-      description: 'Rumah sakit umum daerah Cilegon',
-      address: 'Jl. Jend. Sudirman No. 3',
-      subDistrict: 'Kebon Nanas',
-      district: 'Cilegon',
-      city: 'Cilegon',
-      province: 'Banten',
-      postalCode: '15118',
-      country: 'Indonesia',
-      createdAt: ic.time(),
-      updatedAt: ic.time(),
-    };
-    hospitalStorage.insert(firstHospital.id, firstHospital);
-    hospitalStorage.insert(secondHospital.id, secondHospital);
+    // Create initial hospitals and insert it into storage.
+    const initHospitals = [
+      {
+        id: uuidv4(),
+        name: 'RS Cipto Mangunkusumo (RSCM)',
+        description: 'Rumah sakit umum pusat Cipto Mangunkusumo Jakarta',
+        address: 'Jl. Diponegoro No. 71, RW. 2',
+        subDistrict: 'Kenari',
+        district: 'Senen',
+        city: 'Jakarta Pusat',
+        province: 'DKI Jakarta',
+        postalCode: '10430',
+        country: 'Indonesia',
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+      {
+        id: uuidv4(),
+        name: 'RS Premier Bintaro',
+        description: 'Rumah sakit Premier Bintaro Jakarta',
+        address: 'Jl. M.H. Thamrin No. 1, RT.1/RW.3',
+        subDistrict: 'Pondok Jaya',
+        district: 'Pondok Aren',
+        city: 'Tangerang Selatan',
+        province: 'Banten',
+        postalCode: '15224',
+        country: 'Indonesia',
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+      {
+        id: uuidv4(),
+        name: 'RS Mayapada',
+        description: 'Rumah sakit Mayapada Jakarta',
+        address: 'Jl. Lebak Bulus I No. 29, RT.1/RW.2',
+        subDistrict: 'Lebak Bulus',
+        district: 'Cilandak Barat',
+        city: 'Jakarta Selatan',
+        province: 'DKI Jakarta',
+        postalCode: '12440',
+        country: 'Indonesia',
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+      {
+        id: uuidv4(),
+        name: 'RS Pertamina Jaya',
+        description: 'Rumah sakit Pertamina Jaya Jakarta',
+        address: 'Jl. Kyai Maja No. 2, RT.1/RW.2',
+        subDistrict: 'Kebayoran Baru',
+        district: 'Kebayoran Baru',
+        city: 'Jakarta Selatan',
+        province: 'DKI Jakarta',
+        postalCode: '12120',
+        country: 'Indonesia',
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+      {
+        id: uuidv4(),
+        name: 'RSUP Fatmawati',
+        description: 'Rumah sakit umum pusat Fatmawati Jakarta',
+        address: 'Jl. RS Fatmawati No. 1, RT.1/RW.1',
+        subDistrict: 'Cilandak Timur',
+        district: 'Cilandak',
+        city: 'Jakarta Selatan',
+        province: 'DKI Jakarta',
+        postalCode: '12430',
+        country: 'Indonesia',
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+    ];
+    initHospitals.forEach((hospital) => hospitalStorage.insert(hospital.id, hospital));
 
-    // Create default owners and insert them into storage.
-    const firstOwner = {
-      id: Principal.fromText('ojdzb-hqznc-io47i-fr5j5-fj3y5-2ikeg-5c4ym-uayng-g7im2-pwfle-4qe'),
-      hospitalId: None,
-      role: 'owner',
-      nik: None,
-      nip: None,
-      name: 'Muhammad Akmal Hisyam',
-      specialization: None,
-      schedules: None,
-      email: 'muhammad.akmal@myhealth.id',
-      phone: '081234567890',
-      age: 22,
-      gender: 'male',
-      birthPlace: 'Tangerang',
-      birthDate: BigInt(2_000_000_000_000_000_000n),
-      bloodType: 'O',
-      bloodRhesus: '+',
-      religion: 'Islam',
-      address: 'Jl. Isekai No. 70',
-      subDistrict: 'Binong',
-      district: 'Curug',
-      city: 'Tangerang',
-      province: 'Banten',
-      postalCode: '12345',
-      country: 'Indonesia',
-      isVerified: true,
-      createdAt: ic.time(),
-      updatedAt: ic.time(),
-    };
-    const secondOwner = {
-      id: Principal.fromText('kzwy6-dofh2-qqkqq-eli34-4qozm-o3l7z-3qefj-agytc-6doxm-6bnur-2qe'),
-      hospitalId: None,
-      role: 'owner',
-      nik: None,
-      nip: None,
-      name: 'Rilo Anggoro Saputra',
-      specialization: None,
-      schedules: None,
-      email: 'rilo.anggoro@myhealth.id',
-      phone: '081234567890',
-      age: 22,
-      gender: 'male',
-      birthPlace: 'Tangerang',
-      birthDate: BigInt(2_000_000_000_000_000_000n),
-      bloodType: 'O',
-      bloodRhesus: '+',
-      religion: 'Islam',
-      address: 'Jl. Isekai No. 71',
-      subDistrict: 'Binong',
-      district: 'Curug',
-      city: 'Tangerang',
-      province: 'Banten',
-      postalCode: '12345',
-      country: 'Indonesia',
-      isVerified: true,
-      createdAt: ic.time(),
-      updatedAt: ic.time(),
-    };
-    userStorage.insert(firstOwner.id, firstOwner);
-    userStorage.insert(secondOwner.id, secondOwner);
+    // Create initial owners and insert them into storage.
+    const initOwners = [
+      {
+        id: Principal.fromText('ojdzb-hqznc-io47i-fr5j5-fj3y5-2ikeg-5c4ym-uayng-g7im2-pwfle-4qe'),
+        hospitalId: None,
+        role: 'owner',
+        nik: None,
+        nip: None,
+        name: 'Muhammad Akmal Hisyam',
+        specialization: None,
+        schedules: None,
+        email: 'muhammad.akmal@myhealth.id',
+        phone: '081234567890',
+        age: 22,
+        gender: 'male',
+        birthPlace: 'Tangerang',
+        birthDate: BigInt(2_000_000_000_000_000_000n),
+        bloodType: 'O',
+        bloodRhesus: '+',
+        religion: 'Islam',
+        address: 'Jl. Isekai No. 70',
+        subDistrict: 'Binong',
+        district: 'Curug',
+        city: 'Tangerang',
+        province: 'Banten',
+        postalCode: '12345',
+        country: 'Indonesia',
+        isVerified: true,
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+      {
+        id: Principal.fromText('kzwy6-dofh2-qqkqq-eli34-4qozm-o3l7z-3qefj-agytc-6doxm-6bnur-2qe'),
+        hospitalId: None,
+        role: 'owner',
+        nik: None,
+        nip: None,
+        name: 'Rilo Anggoro Saputra',
+        specialization: None,
+        schedules: None,
+        email: 'rilo.anggoro@myhealth.id',
+        phone: '081234567890',
+        age: 22,
+        gender: 'male',
+        birthPlace: 'Tangerang',
+        birthDate: BigInt(2_000_000_000_000_000_000n),
+        bloodType: 'O',
+        bloodRhesus: '+',
+        religion: 'Islam',
+        address: 'Jl. Isekai No. 71',
+        subDistrict: 'Binong',
+        district: 'Curug',
+        city: 'Tangerang',
+        province: 'Banten',
+        postalCode: '12345',
+        country: 'Indonesia',
+        isVerified: true,
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      },
+    ];
+    initOwners.forEach((owner) => userStorage.insert(owner.id, owner));
   }),
 
   /* -------------------- HOSPITAL -------------------- */
@@ -771,9 +815,15 @@ export default Canister({
       const newUser = {
         ...req,
         id: ic.caller(),
-        hospitalId: req.role === 'doctor' || req.role === 'nurse' ? Some(req.hospitalId) : None,
+        hospitalId:
+          req.role === 'admin' || req.role === 'doctor' || req.role === 'nurse'
+            ? Some(req.hospitalId)
+            : None,
         nik: req.role === 'patient' ? Some(req.nik) : None,
-        nip: req.role === 'doctor' || req.role === 'nurse' ? Some(req.nip) : None,
+        nip:
+          req.role === 'admin' || req.role === 'doctor' || req.role === 'nurse'
+            ? Some(req.nip)
+            : None,
         specialization: req.role === 'doctor' ? Some(req.specialization) : None,
         schedules:
           req.role === 'doctor'
@@ -858,10 +908,20 @@ export default Canister({
         return Err({ Forbidden: 'Anda tidak memiliki akses untuk melihat daftar pengguna.' });
       }
 
+      // Get the caller from storage.
+      const caller = userStorage.get(ic.caller()).Some;
+
       // Return unverified users.
       const unverifiedUsers = userStorage
         .values()
-        .filter((user: typeof User) => !user.isVerified)
+        .filter(
+          (user: typeof User) =>
+            !user.isVerified &&
+            (caller.role === 'admin'
+              ? user.role !== 'admin' &&
+                (user.role !== 'patient' ? user.hospitalId.Some === caller.hospitalId.Some : true)
+              : true)
+        )
         .map((user: typeof User) => generateUserResponse(user.id));
       return Ok(unverifiedUsers);
     } catch (error) {
@@ -1153,10 +1213,12 @@ export default Canister({
       // Return the caller appointments filtered by caller id.
       const appointments = appointmentStorage
         .values()
-        .filter((appointment: typeof Appointment) =>
-          appointment.startTime > ic.time() && userStorage.get(ic.caller()).Some.role === 'patient'
-            ? appointment.patientId.toText() === ic.caller().toText()
-            : appointment.doctorId.toText() === ic.caller().toText()
+        .filter(
+          (appointment: typeof Appointment) =>
+            (userStorage.get(ic.caller()).Some.role === 'patient'
+              ? appointment.patientId.toText() === ic.caller().toText()
+              : appointment.doctorId.toText() === ic.caller().toText()) &&
+            appointment.startTime > ic.time()
         )
         .map((appointment: typeof Appointment) => generateAppointmentResponse(appointment.id));
       return Ok(appointments);
@@ -1180,10 +1242,12 @@ export default Canister({
       // Return the caller appointments filtered by caller id.
       const appointments = appointmentStorage
         .values()
-        .filter((appointment: typeof Appointment) =>
-          appointment.startTime <= ic.time() && userStorage.get(ic.caller()).Some.role === 'patient'
-            ? appointment.patientId.toText() === ic.caller().toText()
-            : appointment.doctorId.toText() === ic.caller().toText()
+        .filter(
+          (appointment: typeof Appointment) =>
+            (userStorage.get(ic.caller()).Some.role === 'patient'
+              ? appointment.patientId.toText() === ic.caller().toText()
+              : appointment.doctorId.toText() === ic.caller().toText()) &&
+            appointment.startTime <= ic.time()
         )
         .map((appointment: typeof Appointment) => generateAppointmentResponse(appointment.id));
       return Ok(appointments);

@@ -29,7 +29,10 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             <Alert status="warning" variant="left-accent" marginBottom={4}>
               <AlertIcon />
               <AlertTitle>Anda belum terverifikasi!</AlertTitle>
-              <AlertDescription>Silakan hubungi admin untuk melakukan verifikasi.</AlertDescription>
+              <AlertDescription>
+                Silakan hubungi {user?.role === 'admin' ? 'owner' : 'admin'} untuk melakukan
+                verifikasi.
+              </AlertDescription>
             </Alert>
           )}
           {children}
