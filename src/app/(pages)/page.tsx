@@ -26,6 +26,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 
 import { AuthContext } from '@/lib/contexts/auth';
 import { HomeLayout } from '@/lib/components/layouts';
+import { Barlow_Condensed } from 'next/font/google';
 
 const Home = () => {
   const { isLoading, signIn } = useContext(AuthContext);
@@ -45,11 +46,10 @@ const Home = () => {
         <VStack alignItems="start" paddingY={12}>
           <Heading as="h2" size="xl" lineHeight={1.5}>
             <Highlight
-              query={['Memahami', 'Membimbing']}
+              query={['Inovatif', 'Pelayanan Unggul']}
               styles={{ px: '3', py: '0.2', rounded: '12', backgroundColor: 'brand.50' }}
             >
-              Bersama Kami, Kesehatan Bukan Hanya Layanan Medis, Tetapi Pengalaman Peduli yang
-              Memahami dan Membimbing Setiap Langkah Perjalanan Anda!
+              Sistem Manajemen Rumah Sakit yang Inovatif untuk Pelayanan Unggul dan Kesejahteraan Pasien!
             </Highlight>
           </Heading>
           <Text fontSize="md">
@@ -76,223 +76,6 @@ const Home = () => {
           display={['none', 'none', 'block']}
         />
       </HStack>
-
-      <HStack
-        width="full"
-        height="full"
-        alignItems="center"
-        background="white"
-        flexDirection={['column', 'column', 'row']}
-        paddingX={[4, 4, 12]}
-        paddingY={12}
-        minHeight={600}
-        spacing={8}
-      >
-        <SimpleGrid columns={2} spacing={4} width="full">
-          <Image
-            src="/images/hospital-1.jpg"
-            alt="Hospital 1"
-            width="full"
-            boxShadow="sm"
-            rounded="md"
-            borderTopLeftRadius={24}
-          />
-          <Image
-            src="/images/hospital-2.jpg"
-            alt="Hospital 2"
-            width="full"
-            boxShadow="sm"
-            rounded="md"
-            borderTopRightRadius={24}
-          />
-          <Image
-            src="/images/hospital-3.jpg"
-            alt="Hospital 3"
-            width="full"
-            boxShadow="sm"
-            rounded="md"
-            borderBottomLeftRadius={24}
-          />
-          <Image
-            src="/images/hospital-4.jpg"
-            alt="Hospital 4"
-            width="full"
-            boxShadow="sm"
-            rounded="md"
-            borderBottomRightRadius={24}
-          />
-        </SimpleGrid>
-        <VStack alignItems="start" spacing={4} textAlign="justify">
-          <Heading as="h3" size="lg" color="brand.500">
-            Kenapa MyHealth?
-          </Heading>
-          <Text>
-            MyHealth menjadi pilihan unggul karena menyajikan pengalaman kesehatan yang terbaik bagi
-            setiap pasien, ditandai oleh berbagai keunggulan dan nilai tambah yang dihadirkannya:
-          </Text>
-          <List spacing={2}>
-            <ListItem>
-              <ListIcon as={FaCheckCircle} color="brand.500" />
-              MyHealth memanfaatkan teknologi terkini dengan menyajikan platform digital
-              terintegrasi yang memudahkan pasien mengakses informasi kesehatan mereka, membuat
-              janji dokter, dan mengelola data medis secara efisien.
-            </ListItem>
-            <ListItem>
-              <ListIcon as={FaCheckCircle} color="brand.500" />
-              Dengan pendekatan terintegrasi, MyHealth mengkoordinasikan berbagai aspek perawatan
-              kesehatan, mulai dari diagnosis hingga pemantauan pasca-perawatan.
-            </ListItem>
-            <ListItem>
-              <ListIcon as={FaCheckCircle} color="brand.500" />
-              Pelayanan MyHealth didesain untuk memberikan pengalaman pasien yang positif, dengan
-              staf yang ramah dan perhatian terhadap kebutuhan individual.
-            </ListItem>
-            <ListItem>
-              <ListIcon as={FaCheckCircle} color="brand.500" />
-              MyHealth menyediakan teknologi pemantauan kesehatan terkini untuk membantu pasien
-              dalam memantau kondisi kesehatan mereka secara real-time.
-            </ListItem>
-            <ListItem>
-              <ListIcon as={FaCheckCircle} color="brand.500" />
-              Keamanan data pasien merupakan prioritas utama MyHealth, dengan menerapkan sistem
-              keamanan tinggi dan kebijakan privasi yang ketat.
-            </ListItem>
-            <ListItem>
-              <ListIcon as={FaCheckCircle} color="brand.500" />
-              MyHealth bukan sekadar penyedia layanan kesehatan, tetapi menjadi mitra perjalanan
-              kesehatan pasien dengan fokus pada kepuasan pasien, teknologi terkini, dan pelayanan
-              yang memberikan dampak positif bagi kesehatan masyarakat.
-            </ListItem>
-          </List>
-          <Text>
-            Melalui kombinasi inovasi teknologi, pelayanan terintegrasi, pengalaman pasien yang
-            personal, keamanan data, dan promosi kesehatan preventif, MyHealth menjadi destinasi
-            yang menarik bagi pasien yang mencari perawatan kesehatan yang komprehensif dan
-            berorientasi pada kebutuhan individu mereka
-          </Text>
-        </VStack>
-      </HStack>
-
-      <VStack
-        justifyContent="center"
-        textAlign="center"
-        width="full"
-        height="full"
-        paddingX={[4, 4, 12]}
-        paddingY={12}
-        minHeight={400}
-        spacing={4}
-      >
-        <Heading as="h2" size="xl" color="brand.500">
-          Departemen Kami
-        </Heading>
-        <Text>
-          Setiap departemen di MyHealth memiliki peran yang krusial dalam memberikan pelayanan
-          kesehatan terbaik dan menciptakan lingkungan perawatan yang menyeluruh dan efisien. Kerja
-          sama antar departemen adalah kunci untuk memberikan perawatan kesehatan yang terkoordinasi
-          dan terintegrasi.
-        </Text>
-        <HStack flexWrap="wrap" justifyContent="center" spacing={4}>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Penyakit Dalam
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                THT
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Jantung
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Bedah
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Radiologi
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Laboratorium
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Jiwa
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Anak
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Gizi
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Kedokteran Nuklir
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Rehabilitasi Medik
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Gigi & Mulut
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Mata
-              </Heading>
-            </CardHeader>
-          </Card>
-          <Card backgroundColor="brand.500" borderRadius={12}>
-            <CardHeader>
-              <Heading as="h6" size="sm" color="white">
-                Kulit & Kelamin
-              </Heading>
-            </CardHeader>
-          </Card>
-        </HStack>
-      </VStack>
 
       <HStack
         width="full"
@@ -361,7 +144,165 @@ const Home = () => {
             </TabPanels>
           </Tabs>
         </VStack>
-        <SimpleGrid columns={2} spacing={4} width="full" justifyContent={'center'}>
+        <SimpleGrid spacing={4} width="full" justifyContent={'center'}>
+          <Image
+            src="/icons/myhealth-logo.png"
+            alt="Hospital 4"
+            width="full"
+            boxShadow="sm"
+            rounded="md"
+            borderRadius={24}
+          />
+        </SimpleGrid>
+      </HStack>
+
+      <VStack
+        justifyContent="center"
+        textAlign="center"
+        width="full"
+        height="full"
+        paddingX={[4, 4, 12]}
+        paddingY={12}
+        minHeight={400}
+        spacing={4}
+      >
+        <Heading as="h2" size="xl" color="brand.500">
+          Mitra Kami
+        </Heading>
+        <Text>
+          MyHealth sudah dipercayai oleh berbagai rumah sakit ternama yang ada di Indonesia
+          untuk di terapkan pada rumah sakit mereka.
+        </Text>
+        <HStack flexWrap="wrap" justifyContent="center" spacing={5}>
+          <Card
+            width="10rem"
+            height="5rem"
+            display="flex"
+            justifyContent="center"
+            borderColor="brand.50"
+            alignItems="center"
+            backgroundColor="white"
+            padding={2}
+            borderWidth={1}
+            borderRadius={8}
+          >
+            <Image
+              src="images/rs-1.png"
+              width="50"
+              height="50"
+              alt="partnership1"
+              boxShadow="sm"
+              rounded="md"
+              borderTopLeftRadius={8}
+            />
+          </Card>
+          <Card
+            width="10rem"
+            height="5rem"
+            display="flex"
+            justifyContent="center"
+            borderColor="brand.50"
+            alignItems="center"
+            backgroundColor="white"
+            padding={2}
+            borderWidth={1}
+            borderRadius={8}
+          >
+            <Image
+              justifyContent="center"
+              src="images/rs-2.png"
+              width="50"
+              height="50"
+              alt="partnership1"
+              boxShadow="sm"
+              rounded="md"
+              borderTopLeftRadius={8}
+            />
+          </Card>
+          <Card
+            width="10rem"
+            height="5rem"
+            display="flex"
+            justifyContent="center"
+            borderColor="brand.50"
+            alignItems="center"
+            backgroundColor="white"
+            padding={2}
+            borderWidth={1}
+            borderRadius={8}
+          >
+            <Image
+              justifyContent="center"
+              src="images/rs-3.png"
+              width="50"
+              height="50"
+              alt="partnership1"
+              boxShadow="sm"
+              rounded="md"
+              borderTopLeftRadius={8}
+            />
+          </Card>
+          <Card
+            width="10rem"
+            height="5rem"
+            display="flex"
+            justifyContent="center"
+            borderColor="brand.50"
+            alignItems="center"
+            backgroundColor="white"
+            padding={2}
+            borderWidth={1}
+            borderRadius={8}
+          >
+            <Image
+              justifyContent="center"
+              src="images/rs-4.png"
+              width="50"
+              height="50"
+              alt="partnership1"
+              boxShadow="sm"
+              rounded="md"
+              borderTopLeftRadius={8}
+            />
+          </Card>
+          <Card
+            width="10rem"
+            height="5rem"
+            display="flex"
+            justifyContent="center"
+            borderColor="brand.50"
+            alignItems="center"
+            backgroundColor="white"
+            padding={2}
+            borderWidth={1}
+            borderRadius={8}
+          >
+            <Image
+              justifyContent="center"
+              src="images/rs-5.png"
+              width="50"
+              height="50"
+              alt="partnership1"
+              boxShadow="sm"
+              rounded="md"
+              borderTopLeftRadius={8}
+            />
+          </Card>
+        </HStack>
+      </VStack>
+
+      <HStack
+        width="full"
+        height="full"
+        alignItems="center"
+        background="white"
+        flexDirection={['column', 'column', 'row']}
+        paddingX={[4, 4, 12]}
+        paddingY={12}
+        minHeight={600}
+        spacing={8}
+      >
+        <SimpleGrid columns={2} spacing={4} width="full">
           <Image
             src="/images/hospital-1.jpg"
             alt="Hospital 1"
@@ -395,6 +336,39 @@ const Home = () => {
             borderBottomRightRadius={24}
           />
         </SimpleGrid>
+        <VStack alignItems="start" spacing={4} textAlign="justify">
+          <Heading as="h3" size="lg" color="brand.500">
+            Kenapa MyHealth?
+          </Heading>
+          <Text>
+            Terpilihnya MyHealth sebagai Pilihan Unggul tidak terlepas dari dedikasi kami untuk memberikan pengalaman kesehatan terbaik kepada setiap pasien. Keunggulan dan nilai tambah yang kami hadirkan menjadi landasan utama bagi kepuasan dan kesejahteraan Anda.
+          </Text>
+          <List spacing={2}>
+            <ListItem>
+              <ListIcon as={FaCheckCircle} color="brand.500" />
+              MyHealth memimpin era kesehatan modern dengan memanfaatkan teknologi terkini.
+            </ListItem>
+            <ListItem>
+              <ListIcon as={FaCheckCircle} color="brand.500" />
+              Platform digital terintegrasi kami mempermudah pasien untuk mengakses informasi kesehatan, membuat janji dokter, dan mengelola data medis dengan keefisienan yang belum pernah terjadi sebelumnya.
+            </ListItem>
+            <ListItem>
+              <ListIcon as={FaCheckCircle} color="brand.500" />
+              MyHealth merancang pelayanan dengan penuh perhatian untuk menciptakan pengalaman positif bagi setiap pengguna.
+            </ListItem>
+            <ListItem>
+              <ListIcon as={FaCheckCircle} color="brand.500" />
+              MyHealth menyediakan teknologi pemantauan kesehatan terkini untuk membantu pasien memantau status kesehatannya secara real time.
+            </ListItem>
+            <ListItem>
+              <ListIcon as={FaCheckCircle} color="brand.500" />
+              Keamanan data pasien menjadi prioritas utama MyHealth dengan menerapkan sistem keamanan tinggi.
+            </ListItem>
+          </List>
+          <Text>
+            MyHealth bukan hanya sekadar penyedia layanan kesehatan, melainkan mitra strategis dalam perjalanan manajemen rumah sakit. Fokus utama kami adalah kepuasan pasien, penerapan teknologi terkini, dan pelayanan yang memberikan dampak positif bagi kesehatan masyarakat. Sebagai vendor sistem manajemen rumah sakit, MyHealth hadir untuk mendukung efisiensi dan kualitas layanan kesehatan di institusi Anda.
+          </Text>
+        </VStack>
       </HStack>
 
       <HStack
