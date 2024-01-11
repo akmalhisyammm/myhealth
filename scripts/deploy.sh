@@ -28,8 +28,8 @@ dfx generate myhealth_backend
 
 bash ./scripts/env.sh
 
-# npm run build
+npm run build
 
-# dfx deploy myhealth_frontend --network "$ENV"
+dfx deploy myhealth_frontend --network "$ENV"
 
 exit 0

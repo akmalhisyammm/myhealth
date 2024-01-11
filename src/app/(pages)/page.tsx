@@ -4,7 +4,6 @@ import { useContext } from 'react';
 import {
   Button,
   Card,
-  CardHeader,
   HStack,
   Heading,
   Highlight,
@@ -26,7 +25,6 @@ import { FaCheckCircle } from 'react-icons/fa';
 
 import { AuthContext } from '@/lib/contexts/auth';
 import { HomeLayout } from '@/lib/components/layouts';
-import { Barlow_Condensed } from 'next/font/google';
 
 const Home = () => {
   const { isLoading, signIn } = useContext(AuthContext);
@@ -49,7 +47,8 @@ const Home = () => {
               query={['Inovatif', 'Pelayanan Unggul']}
               styles={{ px: '3', py: '0.2', rounded: '12', backgroundColor: 'brand.50' }}
             >
-              Sistem Manajemen Rumah Sakit yang Inovatif untuk Pelayanan Unggul dan Kesejahteraan Pasien!
+              Sistem Manajemen Rumah Sakit yang Inovatif untuk Pelayanan Unggul dan Kesejahteraan
+              Pasien!
             </Highlight>
           </Heading>
           <Text fontSize="md">
@@ -85,7 +84,6 @@ const Home = () => {
         alignItems="start"
         paddingX={[4, 4, 12]}
         paddingY={12}
-        minHeight={600}
         spacing={8}
       >
         <VStack alignItems="start" textAlign="justify" spacing={4}>
@@ -170,8 +168,8 @@ const Home = () => {
           Mitra Kami
         </Heading>
         <Text>
-          MyHealth sudah dipercayai oleh berbagai rumah sakit ternama yang ada di Indonesia
-          untuk di terapkan pada rumah sakit mereka.
+          MyHealth sudah dipercayai oleh berbagai rumah sakit ternama yang ada di Indonesia untuk di
+          terapkan pada rumah sakit mereka.
         </Text>
         <HStack flexWrap="wrap" justifyContent="center" spacing={5}>
           <Card
@@ -341,7 +339,9 @@ const Home = () => {
             Kenapa MyHealth?
           </Heading>
           <Text>
-            Terpilihnya MyHealth sebagai Pilihan Unggul tidak terlepas dari dedikasi kami untuk memberikan pengalaman kesehatan terbaik kepada setiap pasien. Keunggulan dan nilai tambah yang kami hadirkan menjadi landasan utama bagi kepuasan dan kesejahteraan Anda.
+            Terpilihnya MyHealth sebagai Pilihan Unggul tidak terlepas dari dedikasi kami untuk
+            memberikan pengalaman kesehatan terbaik kepada setiap pasien. Keunggulan dan nilai
+            tambah yang kami hadirkan menjadi landasan utama bagi kepuasan dan kesejahteraan Anda.
           </Text>
           <List spacing={2}>
             <ListItem>
@@ -350,23 +350,32 @@ const Home = () => {
             </ListItem>
             <ListItem>
               <ListIcon as={FaCheckCircle} color="brand.500" />
-              Platform digital terintegrasi kami mempermudah pasien untuk mengakses informasi kesehatan, membuat janji dokter, dan mengelola data medis dengan keefisienan yang belum pernah terjadi sebelumnya.
+              Platform digital terintegrasi kami mempermudah pasien untuk mengakses informasi
+              kesehatan, membuat janji dokter, dan mengelola data medis dengan keefisienan yang
+              belum pernah terjadi sebelumnya.
             </ListItem>
             <ListItem>
               <ListIcon as={FaCheckCircle} color="brand.500" />
-              MyHealth merancang pelayanan dengan penuh perhatian untuk menciptakan pengalaman positif bagi setiap pengguna.
+              MyHealth merancang pelayanan dengan penuh perhatian untuk menciptakan pengalaman
+              positif bagi setiap pengguna.
             </ListItem>
             <ListItem>
               <ListIcon as={FaCheckCircle} color="brand.500" />
-              MyHealth menyediakan teknologi pemantauan kesehatan terkini untuk membantu pasien memantau status kesehatannya secara real time.
+              MyHealth menyediakan teknologi pemantauan kesehatan terkini untuk membantu pasien
+              memantau status kesehatannya secara real time.
             </ListItem>
             <ListItem>
               <ListIcon as={FaCheckCircle} color="brand.500" />
-              Keamanan data pasien menjadi prioritas utama MyHealth dengan menerapkan sistem keamanan tinggi.
+              Keamanan data pasien menjadi prioritas utama MyHealth dengan menerapkan sistem
+              keamanan tinggi.
             </ListItem>
           </List>
           <Text>
-            MyHealth bukan hanya sekadar penyedia layanan kesehatan, melainkan mitra strategis dalam perjalanan manajemen rumah sakit. Fokus utama kami adalah kepuasan pasien, penerapan teknologi terkini, dan pelayanan yang memberikan dampak positif bagi kesehatan masyarakat. Sebagai vendor sistem manajemen rumah sakit, MyHealth hadir untuk mendukung efisiensi dan kualitas layanan kesehatan di institusi Anda.
+            MyHealth bukan hanya sekadar penyedia layanan kesehatan, melainkan mitra strategis dalam
+            perjalanan manajemen rumah sakit. Fokus utama kami adalah kepuasan pasien, penerapan
+            teknologi terkini, dan pelayanan yang memberikan dampak positif bagi kesehatan
+            masyarakat. Sebagai vendor sistem manajemen rumah sakit, MyHealth hadir untuk mendukung
+            efisiensi dan kualitas layanan kesehatan di institusi Anda.
           </Text>
         </VStack>
       </HStack>

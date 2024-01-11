@@ -7,6 +7,7 @@ export const greetingMessage = (name: string): string => {
   const hour = new Date().getHours();
 
   if (hour < 12) return `Selamat pagi, ${name} 🌅`;
+  if (hour < 15) return `Selamat siang, ${name} 🏙️`;
   if (hour < 18) return `Selamat sore, ${name} 🌇`;
   return `Selamat malam, ${name} 🌃`;
 };

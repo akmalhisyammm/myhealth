@@ -2,6 +2,35 @@
 
 MyHealth is a decentralized healthcare platform built on the Intenet Computer.
 
+## Motivation
+
+We realized that there are security issues with centralized data storage in the medical field, which is still adopted by most hospitals today. With centralized data storage, all patient data is stored centrally on a hospital's server, so patients have no control over their data. Therefore, MyHealth was created to overcome these problems by converting centralized data storage into decentralized data storage. With decentralized data storage, patients have full control over who can access their personal data and medical records. In addition, patients can also visit various hospitals using existing data, so that patients can feel safer and easier when visiting various hospitals.
+
+## Features
+
+### Owner
+
+- Able to verify all registered accounts.
+
+### Admin
+
+- Able to verify all patient accounts, as well as doctor and nurse accounts in the same hospital.
+
+### Doctor
+
+- Able to change the practice schedule.
+- Able to confirm or reject appointments made by patients.
+- Able to review the medical records of patients who have scheduled appointments.
+
+### Nurse
+
+- Able to review all medical records of patients who have scheduled appointments with doctors at the same hospital.
+
+### Patient
+
+- Able to create and delete appointments with doctors if not confirmed.
+- Can view all of his/her medical records.
+
 ## Requirements
 
 - [IC SDK](https://internetcomputer.org/docs/current/developer-docs/setup/quickstart)
@@ -47,6 +76,12 @@ Now you can deploy your canister locally:
 npm run deploy:local
 ```
 
+Start the project in development mode:
+
+```bash
+npm run dev
+```
+
 Assuming you have [created a cycles wallet](https://internetcomputer.org/docs/current/developer-docs/quickstart/network-quickstart) and funded it with cycles, you can deploy to mainnet like this:
 
 ```bash
@@ -59,6 +94,18 @@ If you ever want to stop the replica:
 npm run stop:replica
 ```
 
+## Authors
+
+- [Muhammad Syiarul Amrullah](https://github.com/muhammadarl)
+- [Muhammad Akmal Hisyam](https://github.com/akmalhisyammm)
+- [Rilo Anggoro Saputra](https://github.com/riloanggoro)
+- [Irwan Prasetyo](https://github.com/vroken)
+- [Dzul Jalali Wal Ikram](https://github.com/DzulJalali)
+
+## Credits
+
+- [Freepik](https://www.freepik.com/)
+
 ## License
 
-This smart contract is licensed under MIT License. Please see the [LICENSE](./LICENSE) for more information.
+This project is licensed under MIT License. Please see the [LICENSE](./LICENSE) for more information.

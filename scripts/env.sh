@@ -10,3 +10,6 @@ icHost="NEXT_PUBLIC_IC_HOST=http://localhost:8080"
 echo "$iiCanisterId" > .env
 echo "$backendCanisterId" >> .env
 echo $icHost >> .env
+
+echo "Generated .env file:"
+cat .env
