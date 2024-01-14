@@ -604,69 +604,6 @@ export default Canister({
       },
     ];
     initHospitals.forEach((hospital) => hospitalStorage.insert(hospital.id, hospital));
-
-    // Create initial owners and insert them into storage.
-    const initOwners = [
-      {
-        id: Principal.fromText('ojdzb-hqznc-io47i-fr5j5-fj3y5-2ikeg-5c4ym-uayng-g7im2-pwfle-4qe'),
-        hospitalId: None,
-        role: 'owner',
-        nik: None,
-        nip: None,
-        name: 'Muhammad Akmal Hisyam',
-        specialization: None,
-        schedules: None,
-        email: 'muhammad.akmal@myhealth.id',
-        phone: '081234567890',
-        age: 22,
-        gender: 'male',
-        birthPlace: 'Tangerang',
-        birthDate: BigInt(2_000_000_000_000_000_000n),
-        bloodType: 'O',
-        bloodRhesus: '+',
-        religion: 'Islam',
-        address: 'Jl. Isekai No. 70',
-        subDistrict: 'Binong',
-        district: 'Curug',
-        city: 'Tangerang',
-        province: 'Banten',
-        postalCode: '12345',
-        country: 'Indonesia',
-        isVerified: true,
-        createdAt: ic.time(),
-        updatedAt: ic.time(),
-      },
-      {
-        id: Principal.fromText('kzwy6-dofh2-qqkqq-eli34-4qozm-o3l7z-3qefj-agytc-6doxm-6bnur-2qe'),
-        hospitalId: None,
-        role: 'owner',
-        nik: None,
-        nip: None,
-        name: 'Rilo Anggoro Saputra',
-        specialization: None,
-        schedules: None,
-        email: 'rilo.anggoro@myhealth.id',
-        phone: '081234567890',
-        age: 22,
-        gender: 'male',
-        birthPlace: 'Tangerang',
-        birthDate: BigInt(2_000_000_000_000_000_000n),
-        bloodType: 'O',
-        bloodRhesus: '+',
-        religion: 'Islam',
-        address: 'Jl. Isekai No. 71',
-        subDistrict: 'Binong',
-        district: 'Curug',
-        city: 'Tangerang',
-        province: 'Banten',
-        postalCode: '12345',
-        country: 'Indonesia',
-        isVerified: true,
-        createdAt: ic.time(),
-        updatedAt: ic.time(),
-      },
-    ];
-    initOwners.forEach((owner) => userStorage.insert(owner.id, owner));
   }),
 
   /* -------------------- HOSPITAL -------------------- */
@@ -767,6 +704,56 @@ export default Canister({
    * @returns true if the caller is registered, false otherwise.
    */
   isCallerRegistered: query([], bool, () => isUserExists(ic.caller())),
+
+  /**
+   * Initializes the caller as an owner.
+   * @returns the caller or an error.
+   */
+  initCallerAsOwner: update([], Result(UserResponse, Error), () => {
+    try {
+      // If caller already exists, return error.
+      if (isUserExists(ic.caller())) {
+        const user = userStorage.get(ic.caller()).Some;
+        return Err({ BadRequest: `Anda telah terdaftar sebagai ${user.role}.` });
+      }
+
+      // Create new user, insert it into storage and return it.
+      const newUser = {
+        id: ic.caller(),
+        hospitalId: None,
+        role: 'owner',
+        nik: None,
+        nip: None,
+        name: 'Myself',
+        specialization: None,
+        schedules: None,
+        email: 'me@myhealth.id',
+        phone: '081234567890',
+        age: 22,
+        gender: 'male',
+        birthPlace: 'Tangerang',
+        birthDate: BigInt(2_000_000_000_000_000_000n),
+        bloodType: 'O',
+        bloodRhesus: '+',
+        religion: 'Islam',
+        address: 'Jl. Isekai No. 75',
+        subDistrict: 'Binong',
+        district: 'Curug',
+        city: 'Tangerang',
+        province: 'Banten',
+        postalCode: '12345',
+        country: 'Indonesia',
+        isVerified: true,
+        createdAt: ic.time(),
+        updatedAt: ic.time(),
+      };
+      userStorage.insert(newUser.id, newUser);
+      return Ok(generateUserResponse(newUser.id));
+    } catch (error) {
+      // If any error occurs, return it.
+      return Err({ InternalError: 'Terjadi kesalahan.' });
+    }
+  }),
 
   /**
    * Creates a new user by the caller.

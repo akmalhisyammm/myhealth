@@ -184,7 +184,7 @@ const Navbar = ({ isLoggedIn }: NavbarProps) => {
               <HStack spacing={8} display={['none', 'none', 'flex']}>
                 <Button variant="link">Beranda</Button>
                 <Button variant="link">Tentang</Button>
-                <Button variant="link">Dokter</Button>
+                <Button variant="link">Mitra</Button>
                 <Button variant="link">Pelayanan</Button>
                 <Button variant="link">Kontak</Button>
               </HStack>
