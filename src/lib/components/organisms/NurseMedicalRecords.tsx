@@ -308,7 +308,7 @@ const NurseMedicalRecords = () => {
         <ModalContent>
           <ModalHeader borderBottomWidth={2}>Detail Rekam Medis</ModalHeader>
           <ModalBody display="flex" flexDirection="column" padding={6} gap={4}>
-            <Heading as="h4" size="md" color="brand.500" marginTop={4}>
+            <Heading as="h4" size="md" color="brand.500">
               Informasi Janji Temu
             </Heading>
             <Text>
@@ -330,9 +330,9 @@ const NurseMedicalRecords = () => {
               <strong>Keluhan:</strong> {appointmentDetail?.complaint}
             </Text>
             <Text>
-              <strong>Status:</strong> Telah diperiksa
+              <strong>Status:</strong> Selesai
             </Text>
-            <Heading as="h4" size="md" color="brand.500">
+            <Heading as="h4" size="md" color="brand.500" marginTop={4}>
               Informasi Pasien
             </Heading>
             <Text>
@@ -342,18 +342,21 @@ const NurseMedicalRecords = () => {
               <strong>Umur:</strong> {patientDetail?.age}
             </Text>
             <Text>
-              <strong>Tempat & Tanggal Lahir:</strong> {patientDetail?.birthPlace},{' '}
-              {patientDetail?.birthDate
-                ? dayjs(nat64ToDate(patientDetail.birthDate)).locale('id').format('DD MMMM YYYY')
-                : ''}
-            </Text>
-            <Text>
               <strong>Jenis Kelamin:</strong>{' '}
-              {patientDetail?.gender === 'male' ? 'Laki-laki' : 'Perempuan'}
+              {patientDetail?.gender === 'male' ? 'Laki-Laki' : 'Perempuan'}
             </Text>
             <Text>
               <strong>Golongan Darah:</strong> {patientDetail?.bloodType}
               {patientDetail?.bloodRhesus}
+            </Text>
+            <Text>
+              <strong>Domisili:</strong> {patientDetail?.city}, {patientDetail?.province}
+            </Text>
+            <Text>
+              <strong>Email:</strong> {patientDetail?.email}
+            </Text>
+            <Text>
+              <strong>Telepon:</strong> {patientDetail?.phone}
             </Text>
           </ModalBody>
           <ModalFooter borderTopWidth={2}>
